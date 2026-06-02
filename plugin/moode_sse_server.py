@@ -26,6 +26,7 @@ THEAUDIODB_API_KEY    = "2"
 
 DEBOUNCE_MS             = 0.8
 REQUEST_TIMEOUT         = 10.0
+MB_TIMEOUT              = (0.5, 1.5)
 
 MAX_SIZE_PX           = 800
 COVER_QUALITY         = 85
@@ -429,6 +430,7 @@ def normalize_title(title, artist=None):
     title = re.sub(r'(?:www\.[a-z0-9\.]+|[a-z0-9\.]+\.ch)\s*', '', title, flags=re.IGNORECASE).strip()
 
     title = re.sub(r'\s*[\(\[].*?[\)\]]', '', title).strip()
+    title = re.sub(r'[\s\-\.]+$', '', title).strip()
     res = title.strip()
     if raw != res:
         logging.info(f"[normalize_title] 🧹 '{raw}' → '{res}'")
@@ -491,9 +493,13 @@ def is_noise(raw_title, station_name):
         if any(w in segment_part for w in advertising_keywords):
             return True, SEGMENT_ADVERTISING
 
-    # Check advertising in full title (e.g. 'Pubblicita' without separator)
-    if re.search(r'pubblicit', ti) or any(w in ti for w in ["adbreak", "ad break"]):
-            return True, SEGMENT_ADVERTISING
+    # Check meteo/traffic in full title (no separator)
+    if any(w in ti for w in ["meteo", "weather", "wetter", "météo", "previsioni"]):
+        return True, SEGMENT_METEO
+    if any(w in ti for w in ["traffico", "traffic", "verkehr", "trafic", "viabilità", "viabilita"]):
+        return True, SEGMENT_TRAFFIC
+    if any(w in ti for w in ["adbreak", "ad break", "adbreak_end", "advert", "advertising"]):
+        return True, SEGMENT_ADVERTISING
 
     # Title too similar to station name
     st_parts = st.split()
@@ -618,7 +624,7 @@ def search_musicbrainz(artist, title, album=None):
             "https://musicbrainz.org/ws/2/recording",
             headers={"User-Agent": "MoodeRadio/9.1.0 ( moode@example.com )"},
             params={"query": q, "fmt": "json", "limit": 3},
-            timeout=REQUEST_TIMEOUT
+            timeout=MB_TIMEOUT
         )
         if r.ok:
             for rec in r.json().get("recordings", []):
@@ -632,7 +638,7 @@ def search_musicbrainz(artist, title, album=None):
                         cr = requests.get(
                             f"https://coverartarchive.org/release/{mbid}",
                             headers={"User-Agent": "MoodeRadio/9.1.0 ( moode@example.com )"},
-                            timeout=REQUEST_TIMEOUT
+                            timeout=MB_TIMEOUT
                         )
                         if cr.ok:
                             for img in cr.json().get("images", []):
@@ -1356,12 +1362,8 @@ def listen_events():
                 last_logo_path    = current_logo_path
                 clear_last_cover_event()
 
-                event = {
-                        "action":       "restore_logo",
-                        "station_name": station_name,
-                        "logo_path":    current_logo_path,
-                    }
-                enqueue_track_event(event)
+                publish_event("logo_restored", current_logo_path)
+
 
                 if partially_missing:
                     continue
