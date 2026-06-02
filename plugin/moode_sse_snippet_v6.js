@@ -65,6 +65,7 @@
         var ts = extractTs(url);
         if (ts <= lastEventTs) return;
         lastEventTs = ts;
+        lastAppliedUrl = url;
         pendingUrl  = url;
         scheduleApply();
     }
