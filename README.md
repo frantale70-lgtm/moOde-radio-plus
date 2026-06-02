@@ -120,18 +120,35 @@ sudo systemctl restart localdisplay.service
 
 | Provider | Key | Dove ottenerla |
 |---|---|---|
+| iTunes | — | Non richiede API key |
+| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — richiede abbonamento Deezer |
 | LastFM | `LASTFM_API_KEY` | [last.fm/api](https://www.last.fm/api) |
+| MusicBrainz | — | Non richiede API key |
 | Discogs | `DISCOGS_TOKEN` | [discogs.com/settings/developers](https://www.discogs.com/settings/developers) |
 | TheAudioDB | `THEAUDIODB_API_KEY` | [theaudiodb.com/api_guide.php](https://www.theaudiodb.com/api_guide.php) |
 | Spotify | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com](https://developer.spotify.com) — richiede account Premium |
-| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — richiede abbonamento Deezer |
 
-iTunes e MusicBrainz non richiedono API key.
+### Permessi file
+
+Il plugin viene installato con permessi standard. Per modificare i file dopo l'installazione:
+
+**Config** (l'unico file che l'utente deve modificare — API keys e parametri):
+```bash
+sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
+```
+
+**Daemon e snippet** (per sviluppatori e contributor):
+```bash
+sudo chown moode:moode /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chmod 775 /var/www/js/lib.min.js
+sudo chown moode:moode /var/www/js/lib.min.js
+```
 
 ### Autori
 
-- **Ivo Scagliola** — progettazione, sviluppo e testing
-- **Marco Mosca** — co-autore
+- **Ivo Scagliola** — co-autore, progettazione, sviluppo e testing finale
+- **Marco Mosca** — co-autore, progettazione, sviluppo e testing
 
 ### Licenza
 
@@ -254,18 +271,35 @@ sudo systemctl restart localdisplay.service
 
 | Provider | Key | Where to get it |
 |---|---|---|
+| iTunes | — | No API key required |
+| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — requires Deezer subscription |
 | LastFM | `LASTFM_API_KEY` | [last.fm/api](https://www.last.fm/api) |
+| MusicBrainz | — | No API key required |
 | Discogs | `DISCOGS_TOKEN` | [discogs.com/settings/developers](https://www.discogs.com/settings/developers) |
 | TheAudioDB | `THEAUDIODB_API_KEY` | [theaudiodb.com/api_guide.php](https://www.theaudiodb.com/api_guide.php) |
 | Spotify | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com](https://developer.spotify.com) — requires Premium account |
-| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — requires Deezer subscription |
 
-iTunes and MusicBrainz do not require an API key.
+### File permissions
+
+The plugin is installed with standard permissions. To modify files after installation:
+
+**Config** (the only file users need to edit — API keys and parameters):
+```bash
+sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
+```
+
+**Daemon and snippet** (for developers and contributors):
+```bash
+sudo chown moode:moode /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chmod 775 /var/www/js/lib.min.js
+sudo chown moode:moode /var/www/js/lib.min.js
+```
 
 ### Authors
 
-- **Ivo Scagliola** — design, development and testing
-- **Marco Mosca** — co-author
+- **Ivo Scagliola** — co-author, design, development and final tester
+- **Marco Mosca** — co-author, design, development, testing
 
 ### License
 
