@@ -35,35 +35,33 @@ sudo touch "$LOG_FILE"
 
 # ── PERMESSI ─────────────────────────────────────
 echo "[3/6] Assegnazione permessi..."
-sudo chown root:www-data "$INSTALL_DIR"
+sudo chown moode:moode "$INSTALL_DIR"
 sudo chmod 755 "$INSTALL_DIR"
 sudo chown root:www-data "$LOG_FILE"
 sudo chmod 664 "$LOG_FILE"
 sudo chown root:www-data "$LOGOS_DIR"
 sudo chmod 755 "$LOGOS_DIR"
+sudo chmod 775 "$JS_TARGET"
+sudo chown moode:moode "$JS_TARGET"
 
 # ── DOWNLOAD FILE ─────────────────────────────────
 echo "[4/6] Download file dal repository..."
 
 # Daemon
-sudo curl -fsSL "$REPO_RAW/plugin/moode_sse_server.py" \
+curl -fsSL "$REPO_RAW/plugin/moode_sse_server.py" \
     -o "$INSTALL_DIR/moode_sse_server.py"
-sudo chown root:root "$INSTALL_DIR/moode_sse_server.py"
-sudo chmod 644 "$INSTALL_DIR/moode_sse_server.py"
+chmod 755 "$INSTALL_DIR/moode_sse_server.py"
 
 # Config
-sudo curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
+curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
     -o "$INSTALL_DIR/moode_sse_server.config"
-sudo chown root:root "$INSTALL_DIR/moode_sse_server.config"
-sudo chmod 600 "$INSTALL_DIR/moode_sse_server.config"
+chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 
 # lib.min.js — backup + append snippet
 echo "  Backup lib.min.js..."
-sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-sudo curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v6.js" \
-    | sudo tee -a "$JS_TARGET" > /dev/null
-sudo chown root:root "$JS_TARGET"
-sudo chmod 644 "$JS_TARGET"
+cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
+curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v6.js" \
+    | tee -a "$JS_TARGET" > /dev/null
 
 # ── SERVIZIO SYSTEMD ──────────────────────────────
 echo "[5/6] Installazione servizio systemd..."
