@@ -41,8 +41,9 @@ sudo chown root:www-data "$LOG_FILE"
 sudo chmod 664 "$LOG_FILE"
 sudo chown root:www-data "$LOGOS_DIR"
 sudo chmod 755 "$LOGOS_DIR"
-sudo chmod 775 "$JS_TARGET"
-sudo chown moode:moode "$JS_TARGET"
+# Rendi lib.min.js scrivibile per l'iniezione dello snippet
+sudo chown root:www-data "$JS_TARGET"
+sudo chmod 664 "$JS_TARGET"
 
 # ── DOWNLOAD FILE ─────────────────────────────────
 echo "[4/6] Download file dal repository..."
@@ -57,11 +58,12 @@ curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
     -o "$INSTALL_DIR/moode_sse_server.config"
 chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 
-# lib.min.js — backup + append snippet
+# lib.min.js — backup + append snippet con sudo tee
 echo "  Backup lib.min.js..."
-cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v6.js" \
-    | tee -a "$JS_TARGET" > /dev/null
+sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
+echo "  Iniezione snippet V7.5 in lib.min.js..."
+curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.5.js" | sudo tee -a "$JS_TARGET" > /dev/null
+echo "  Snippet iniettato."
 
 # ── SERVIZIO SYSTEMD ──────────────────────────────
 echo "[5/6] Installazione servizio systemd..."
@@ -78,10 +80,10 @@ echo "[6/6] Verifica servizio..."
 sleep 2
 if systemctl is-active --quiet moode-sse.service; then
     echo ""
-    echo "  ✅ moode-sse attivo e in esecuzione."
+    echo "  moode-sse attivo e in esecuzione."
 else
     echo ""
-    echo "  ❌ Servizio non avviato. Controlla il log:"
+    echo "  Servizio non avviato. Controlla il log:"
     echo "     tail -f $LOG_FILE"
     exit 1
 fi
@@ -90,7 +92,7 @@ echo ""
 echo "============================================="
 echo "  Installazione completata."
 echo ""
-echo "  ⚠ IMPORTANTE: Inserisci le API keys in:"
+echo "  IMPORTANTE: Inserisci le API keys in:"
 echo "    $INSTALL_DIR/moode_sse_server.config"
 echo ""
 echo "  Poi riavvia il daemon:"
