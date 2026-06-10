@@ -41,6 +41,10 @@ I provider vengono interrogati **simultaneamente** tramite `ThreadPoolExecutor`.
 
 Provider supportati: **iTunes, Deezer, LastFM, MusicBrainz, Discogs, TheAudioDB, Spotify**
 
+<p align="center">
+  <img src="docs/log-cover-found.jpg" alt="Daemon Parallel Search Logs" width="600">
+</p>
+
 #### 4. Scoring pesato per tipo di release
 
 I risultati non vengono scelti per primo-arrivato. Ogni cover viene pesata in base al tipo di release dell'album trovato:
@@ -207,6 +211,10 @@ ICY metadata transmitted by radio stations is often dirty: station URLs in the a
 Providers are queried **simultaneously** via `ThreadPoolExecutor`. Not in sequence — in parallel. Each provider responds in its own time, the system collects results and evaluates them.
 
 Supported providers: **iTunes, Deezer, LastFM, MusicBrainz, Discogs, TheAudioDB, Spotify**
+
+<p align="center">
+  <img src="docs/log-cover-found.jpg" alt="Daemon Parallel Search Logs" width="600">
+</p>
 
 #### 4. Weighted Scoring by Release Type
 
