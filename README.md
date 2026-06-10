@@ -141,7 +141,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-
 | Provider | Key | Dove ottenerla |
 |---|---|---|
 | iTunes | — | Non richiede API key |
-| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — richiede abbonamento Deezer |
+| Deezer | — | Non richiede API key o abbonamento |
 | LastFM | `LASTFM_API_KEY` | [last.fm/api](https://www.last.fm/api) |
 | MusicBrainz | — | Non richiede API key |
 | Discogs | `DISCOGS_TOKEN` | [discogs.com/settings/developers](https://www.discogs.com/settings/developers) |
@@ -312,7 +312,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-
 | Provider | Key | Where to get it |
 |---|---|---|
 | iTunes | — | No API key required |
-| Deezer | — | [developers.deezer.com](https://developers.deezer.com) — requires Deezer subscription |
+| Deezer | — | No API key or subscription required |
 | LastFM | `LASTFM_API_KEY` | [last.fm/api](https://www.last.fm/api) |
 | MusicBrainz | — | No API key required |
 | Discogs | `DISCOGS_TOKEN` | [discogs.com/settings/developers](https://www.discogs.com/settings/developers) |
