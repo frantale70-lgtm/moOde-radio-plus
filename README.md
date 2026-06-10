@@ -13,7 +13,9 @@
 
 Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Events)**: il daemon ascolta MPD tramite `idle()` e si risveglia *solo* quando MPD segnala un cambio di traccia, rimanendo silenzioso il resto del tempo. Il frontend riceve la nuova cover in tempo reale via push, senza polling continuo e senza latenza artificiale.
 
-![moOde Web UI con Radio Cover Art](docs/screenshot-browser.jpg)
+| Web UI (Browser) | Local Display (Kiosk) |
+| :---: | :---: |
+| ![moOde Web UI con Radio Cover Art](docs/screenshot-browser.jpg) | ![moOde Local Kiosk Display](docs/screenshot-kiosk.jpg) |
 
 ### Come funziona
 
@@ -92,6 +94,10 @@ Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
 ### Prerequisito
 
 In moOde: **Preferences → Cover Art → Radio track covers = No**
+
+<p align="center">
+  <img src="docs/screenshot-settings.jpg" alt="moOde Preferences settings" width="450">
+</p>
 
 ### Installazione
 
@@ -174,7 +180,9 @@ MIT License
 
 The plugin adopts an **event-driven architecture based on SSE (Server-Sent Events)**: the daemon listens to MPD via `idle()` and wakes up *only* when MPD signals a track change, remaining silent the rest of the time. The frontend receives the new cover in real time via push, without continuous polling and without artificial latency.
 
-![moOde Web UI with Radio Cover Art](docs/screenshot-browser.jpg)
+| Web UI (Browser) | Local Display (Kiosk) |
+| :---: | :---: |
+| ![moOde Web UI with Radio Cover Art](docs/screenshot-browser.jpg) | ![moOde Local Kiosk Display](docs/screenshot-kiosk.jpg) |
 
 ### How it works
 
@@ -253,6 +261,10 @@ The JS snippet injected into `lib.min.js` protects the SSE cover from three dire
 ### Prerequisite
 
 In moOde: **Preferences → Cover Art → Radio track covers = No**
+
+<p align="center">
+  <img src="docs/screenshot-settings.jpg" alt="moOde Preferences settings" width="450">
+</p>
 
 ### Installation
 
