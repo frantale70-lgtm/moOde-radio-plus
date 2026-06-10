@@ -181,10 +181,16 @@ sudo chmod 775 /var/www/js/lib.min.js
 sudo chown moode:moode /var/www/js/lib.min.js
 ```
 
-### Autori
+### Autori e Ringraziamenti
 
 - **Ivo Scagliola** — co-autore, progettazione, sviluppo e testing finale
 - **Marco Mosca** — co-autore, progettazione, sviluppo e testing
+
+Un ringraziamento speciale alla gatta **Calzina**, per la costante compagnia (e i test di pazienza sulla tastiera) durante le sessioni di sviluppo di questo progetto.
+
+<p align="center">
+  <img src="docs/calzina.jpg" alt="Calzina" width="350">
+</p>
 
 ### Licenza
 
@@ -368,10 +374,16 @@ sudo chmod 775 /var/www/js/lib.min.js
 sudo chown moode:moode /var/www/js/lib.min.js
 ```
 
-### Authors
+### Authors and Acknowledgements
 
 - **Ivo Scagliola** — co-author, design, development and final tester
 - **Marco Mosca** — co-author, design, development, testing
+
+Special thanks to **Calzina** the cat, for her constant company (and keyboard-walking tests) during the development of this project.
+
+<p align="center">
+  <img src="docs/calzina.jpg" alt="Calzina" width="350">
+</p>
 
 ### License
 
