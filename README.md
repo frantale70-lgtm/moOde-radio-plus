@@ -87,6 +87,10 @@ Quando il noise gate identifica un segmento noto, invece del logo stazione viene
 
 Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiungibili, usando una traccia di riferimento fissa (The Beatles – Yesterday). Il risultato viene registrato nel log.
 
+<p align="center">
+  <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
+</p>
+
 #### 9. Snippet JS — difesa lato frontend
 
 Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
@@ -257,6 +261,10 @@ When the noise gate identifies a known segment, instead of the station logo a de
 #### 8. Automatic Health Check
 
 Every 5 minutes the daemon autonomously verifies that all providers are reachable, using a fixed reference track (The Beatles – Yesterday). The result is recorded in the log.
+
+<p align="center">
+  <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
+</p>
 
 #### 9. JS Snippet — Frontend Defence
 
