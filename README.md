@@ -83,6 +83,10 @@ Quando il noise gate identifica un segmento noto, invece del logo stazione viene
 | 📰 News | news, notizie, nachrichten, sport, info, promo |
 | 📢 Pubblicità | adbreak, ad break, advert, advertising, spot, AD, ADBREAK_END |
 
+<p align="center">
+  <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
+</p>
+
 #### 8. Health check automatico
 
 Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiungibili, usando una traccia di riferimento fissa (The Beatles – Yesterday). Il risultato viene registrato nel log.
@@ -257,6 +261,10 @@ When the noise gate identifies a known segment, instead of the station logo a de
 | 🚗 Traffic | traffico, traffic, verkehr, trafic, viabilità |
 | 📰 News | news, notizie, nachrichten, sport, info, promo |
 | 📢 Advertising | adbreak, ad break, advert, advertising, spot, AD, ADBREAK_END |
+
+<p align="center">
+  <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
+</p>
 
 #### 8. Automatic Health Check
 
