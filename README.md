@@ -87,7 +87,15 @@ Quando il noise gate identifica un segmento noto, invece del logo stazione viene
   <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
 </p>
 
-#### 8. Health check automatico
+#### 8. Ripristino logo di stazione (Fallback)
+
+Se la ricerca parallela fallisce su tutti i provider (nessun risultato valido trovato dopo i 2 tentativi di pulizia metadata), il daemon ripristina automaticamente il logo originale della stazione radio. Questo garantisce che la schermata non rimanga vuota o con una cover generica non pertinente.
+
+<p align="center">
+  <img src="docs/log-fallback-logo.jpg" alt="Daemon Fallback Logs" width="600">
+</p>
+
+#### 9. Health check automatico
 
 Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiungibili, usando una traccia di riferimento fissa (The Beatles – Yesterday). Il risultato viene registrato nel log.
 
@@ -95,7 +103,7 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 9. Snippet JS — difesa lato frontend
+#### 10. Snippet JS — difesa lato frontend
 
 Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
 
@@ -266,7 +274,15 @@ When the noise gate identifies a known segment, instead of the station logo a de
   <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
 </p>
 
-#### 8. Automatic Health Check
+#### 8. Station Logo Restoration (Fallback)
+
+If the parallel search fails on all providers (no valid result found after the 2 metadata cleaning attempts), the daemon automatically restores the original radio station logo. This ensures that the display doesn't remain blank or show an irrelevant generic cover.
+
+<p align="center">
+  <img src="docs/log-fallback-logo.jpg" alt="Daemon Fallback Logs" width="600">
+</p>
+
+#### 9. Automatic Health Check
 
 Every 5 minutes the daemon autonomously verifies that all providers are reachable, using a fixed reference track (The Beatles – Yesterday). The result is recorded in the log.
 
@@ -274,7 +290,7 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 9. JS Snippet — Frontend Defence
+#### 10. JS Snippet — Frontend Defence
 
 The JS snippet injected into `lib.min.js` protects the SSE cover from three directions:
 
