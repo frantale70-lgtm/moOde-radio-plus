@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 #  moOde-radio-plus — Install Script
-#  Target: moOde Audio Player 10.2.0 on Raspberry Pi 4
+#  Target: moOde Audio Player 10.2.x on Raspberry Pi 4
 #  Repo:   https://github.com/frantale70-lgtm/moOde-radio-plus
 # ============================================================
 
@@ -13,7 +13,7 @@ JS_TARGET="/var/www/js/lib.min.js"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
 LOGOS_DIR="/var/local/www/imagesw/radio-logos"
-NGINX_SITE="/etc/nginx/sites-enabled/default"
+NGINX_SITE="/etc/nginx/sites-available/moode-http.conf"
 
 echo ""
 echo "============================================="
@@ -21,20 +21,20 @@ echo "  moOde-radio-plus — Installazione"
 echo "============================================="
 echo ""
 
-# ── PREREQUISITO ─────────────────────────────────
+# — PREREQUISITO ————————————————————
 echo "[1/7] Prerequisito moOde..."
 echo "  Assicurati che in moOde:"
 echo "  Preferences → Cover Art → Radio track covers = No"
 read -p "  Confermato? [s/N] " confirm
 [[ "$confirm" =~ ^[Ss]$ ]] || { echo "Installazione annullata."; exit 1; }
 
-# ── CARTELLE ─────────────────────────────────────
+# — CARTELLE —————————————————————
 echo "[2/7] Creazione cartelle..."
 sudo mkdir -p "$INSTALL_DIR"
 sudo mkdir -p "$LOGOS_DIR"
 sudo touch "$LOG_FILE"
 
-# ── PERMESSI ─────────────────────────────────────
+# — PERMESSI —————————————————————
 echo "[3/7] Assegnazione permessi..."
 sudo chown moode:moode "$INSTALL_DIR"
 sudo chmod 755 "$INSTALL_DIR"
@@ -46,7 +46,7 @@ sudo chmod 755 "$LOGOS_DIR"
 sudo chown root:www-data "$JS_TARGET"
 sudo chmod 664 "$JS_TARGET"
 
-# ── DOWNLOAD FILE ─────────────────────────────────
+# — DOWNLOAD FILE ————————————————————
 echo "[4/7] Download file dal repository..."
 
 # Daemon
@@ -62,14 +62,14 @@ chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 # lib.min.js — backup + append snippet con sudo tee
 echo "  Backup lib.min.js..."
 sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-echo "  Iniezione snippet V7.5 in lib.min.js..."
-curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.5.js" | sudo tee -a "$JS_TARGET" > /dev/null
+echo "  Iniezione snippet V7.6 in lib.min.js..."
+curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.6.js" | sudo tee -a "$JS_TARGET" > /dev/null
 echo "  Snippet iniettato."
 
-# ── NGINX PROXY SSE ────────────────────────────────
+# — NGINX PROXY SSE ——————————————————
 echo "[5/7] Configurazione Nginx proxy SSE..."
 if grep -q "cover-events" "$NGINX_SITE" 2>/dev/null; then
-    echo "  Nginx gi\u00e0 configurato per /cover-events, skip."
+    echo "  Nginx già configurato per /cover-events, skip."
 else
     # Backup Nginx config
     sudo cp "$NGINX_SITE" "${NGINX_SITE}.bk.$(date +%Y%m%d_%H%M%S)"
@@ -81,11 +81,12 @@ else
     else
         echo "  ERRORE: test Nginx fallito. Ripristino backup..."
         sudo cp "${NGINX_SITE}.bk."* "$NGINX_SITE" 2>/dev/null || true
+        sudo nginx -s reload
         exit 1
     fi
 fi
 
-# ── SERVIZIO SYSTEMD ──────────────────────────────
+# — SERVIZIO SYSTEMD —————————————————
 echo "[6/7] Installazione servizio systemd..."
 sudo curl -fsSL "$REPO_RAW/plugin/moode-sse.service" \
     -o "$SERVICE_FILE"
@@ -95,7 +96,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable moode-sse.service
 sudo systemctl restart moode-sse.service
 
-# ── VERIFICA ─────────────────────────────────────
+# — VERIFICA —————————————————————
 echo "[7/7] Verifica servizio..."
 sleep 2
 if systemctl is-active --quiet moode-sse.service; then
