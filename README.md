@@ -74,7 +74,13 @@ Tra le cover dello stesso album trovate da provider diversi, viene scelta quella
 
 #### 7. Cover di segmento
 
-Quando il noise gate identifica un segmento noto, invece del logo stazione viene mostrata una cover dedicata:
+Durante lo streaming radiofonico, le emittenti trasmettono spesso metadati di servizio (es. `ADBREAK_END` o `Commercial` per la pubblicità). Il sistema nativo di moOde tenta di cercare questi testi come se fossero brani musicali, finendo per visualizzare copertine casuali, decontestualizzate o completamente errate (come nell'esempio del falso positivo a sinistra).
+
+Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca errata e mostra invece una cover dedicata e coerente (a destra):
+
+| moOde Nativo (Falso Positivo) | MR+ (Cover di Segmento) |
+| :---: | :---: |
+| ![moOde Native Fake Cover](docs/screenshot-fake.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segmento | Keywords riconosciute |
 |---|---|
@@ -82,10 +88,6 @@ Quando il noise gate identifica un segmento noto, invece del logo stazione viene
 | 🚗 Traffico | traffico, traffic, verkehr, trafic, viabilità |
 | 📰 News | news, notizie, nachrichten, sport, info, promo |
 | 📢 Pubblicità | adbreak, ad break, advert, advertising, spot, AD, ADBREAK_END |
-
-<p align="center">
-  <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
-</p>
 
 #### 8. Ripristino logo di stazione (Fallback)
 
@@ -285,7 +287,13 @@ Among covers of the same album found by different providers, the highest resolut
 
 #### 7. Segment Covers
 
-When the noise gate identifies a known segment, instead of the station logo a dedicated cover is displayed:
+During radio streaming, broadcasters often transmit service metadata (e.g., `ADBREAK_END` or `Commercial` for ads). The native moOde system attempts to search for these texts as if they were musical tracks, ending up displaying random, out-of-context, or completely incorrect covers (like the false positive example on the left).
+
+When the MR+ *noise gate* identifies a known segment, it blocks this erroneous search and instead displays a dedicated, coherent cover (on the right):
+
+| Native moOde (False Positive) | MR+ (Segment Cover) |
+| :---: | :---: |
+| ![moOde Native Fake Cover](docs/screenshot-fake.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segment | Recognised keywords |
 |---|---|
@@ -293,10 +301,6 @@ When the noise gate identifies a known segment, instead of the station logo a de
 | 🚗 Traffic | traffico, traffic, verkehr, trafic, viabilità |
 | 📰 News | news, notizie, nachrichten, sport, info, promo |
 | 📢 Advertising | adbreak, ad break, advert, advertising, spot, AD, ADBREAK_END |
-
-<p align="center">
-  <img src="docs/screenshot-segment.png" alt="moOde Segment Cover" width="600">
-</p>
 
 #### 8. Station Logo Restoration (Fallback)
 
