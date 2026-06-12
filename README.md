@@ -80,7 +80,7 @@ Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca
 
 | moOde Nativo (Falso Positivo) | MR+ (Cover di Segmento) |
 | :---: | :---: |
-| ![moOde Native Fake Cover](docs/screenshot-fake.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
+| ![moOde Native Fake Cover](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segmento | Keywords riconosciute |
 |---|---|
@@ -293,7 +293,7 @@ When the MR+ *noise gate* identifies a known segment, it blocks this erroneous s
 
 | Native moOde (False Positive) | MR+ (Segment Cover) |
 | :---: | :---: |
-| ![moOde Native Fake Cover](docs/screenshot-fake.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
+| ![moOde Native Fake Cover](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segment | Recognised keywords |
 |---|---|
