@@ -11,6 +11,7 @@ INSTALL_DIR="/opt/moOde_Radio_Cover"
 JS_TARGET="/var/www/js/lib.min.js"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
+NGINX_SITE="/etc/nginx/sites-enabled/default"
 
 echo ""
 echo "============================================="
@@ -22,7 +23,7 @@ read -p "  Confermi la disinstallazione? [s/N] " confirm
 [[ "$confirm" =~ ^[Ss]$ ]] || { echo "Disinstallazione annullata."; exit 0; }
 
 # ── 1. STOP E RIMOZIONE SERVIZIO ─────────────────────
-echo "[1/4] Rimozione servizio systemd..."
+echo "[1/5] Rimozione servizio systemd..."
 sudo systemctl stop moode-sse.service    2>/dev/null || true
 sudo systemctl disable moode-sse.service 2>/dev/null || true
 sudo rm -f "$SERVICE_FILE"
@@ -30,9 +31,8 @@ sudo systemctl daemon-reload
 echo "  Servizio rimosso."
 
 # ── 2. RIPRISTINO lib.min.js ───────────────────────
-echo "[2/4] Ripristino lib.min.js..."
+echo "[2/5] Ripristino lib.min.js..."
 
-# Cerca il backup più recente creato dall'installer
 BACKUP=$(ls -t "${JS_TARGET}.bk."* 2>/dev/null | head -1)
 
 if [ -n "$BACKUP" ]; then
@@ -41,7 +41,6 @@ if [ -n "$BACKUP" ]; then
     sudo rm -f "${JS_TARGET}.bk."*
     echo "  lib.min.js ripristinato dal backup."
 else
-    # Nessun backup: rimuove lo snippet cercando il marcatore
     echo "  Nessun backup trovato. Rimozione snippet tramite marcatore..."
     MARKER="/* moode-sse-patch"
     LINE=$(grep -n "$MARKER" "$JS_TARGET" 2>/dev/null | tail -1 | cut -d: -f1)
@@ -59,8 +58,30 @@ sudo chown root:root "$JS_TARGET"
 sudo chmod 644 "$JS_TARGET"
 echo "  Permessi ripristinati."
 
-# ── 3. RIMOZIONE DIRECTORY INSTALLAZIONE ──────────────
-echo "[3/4] Rimozione directory $INSTALL_DIR..."
+# ── 3. RIPRISTINO NGINX ─────────────────────────────
+echo "[3/5] Ripristino configurazione Nginx..."
+NGINX_BACKUP=$(ls -t "${NGINX_SITE}.bk."* 2>/dev/null | head -1)
+
+if [ -n "$NGINX_BACKUP" ]; then
+    echo "  Ripristino Nginx da backup: $NGINX_BACKUP"
+    sudo cp "$NGINX_BACKUP" "$NGINX_SITE"
+    sudo rm -f "${NGINX_SITE}.bk."*
+elif grep -q "cover-events" "$NGINX_SITE" 2>/dev/null; then
+    echo "  Rimozione blocco /cover-events da Nginx..."
+    sudo sed -i '/location \/cover-events/,/}/d' "$NGINX_SITE"
+else
+    echo "  Nessuna modifica Nginx trovata, skip."
+fi
+
+if sudo nginx -t 2>/dev/null; then
+    sudo nginx -s reload
+    echo "  Nginx ripristinato."
+else
+    echo "  ATTENZIONE: test Nginx fallito dopo ripristino. Verifica manuale necessaria."
+fi
+
+# ── 4. RIMOZIONE DIRECTORY INSTALLAZIONE ──────────────
+echo "[4/5] Rimozione directory $INSTALL_DIR..."
 if [ -d "$INSTALL_DIR" ]; then
     sudo rm -rf "$INSTALL_DIR"
     echo "  Directory rimossa."
@@ -68,8 +89,8 @@ else
     echo "  Directory non trovata, skip."
 fi
 
-# ── 4. RIMOZIONE LOG ──────────────────────────────
-echo "[4/4] Rimozione log..."
+# ── 5. RIMOZIONE LOG ──────────────────────────────
+echo "[5/5] Rimozione log..."
 sudo rm -f "$LOG_FILE"
 echo "  Log rimosso."
 
