@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 #  moOde-radio-plus — Uninstall Script
-#  Target: moOde Audio Player 10.2.0 on Raspberry Pi 4
+#  Target: moOde Audio Player 10.2.x on Raspberry Pi 4
 #  Repo:   https://github.com/frantale70-lgtm/moOde-radio-plus
 # ============================================================
 
@@ -11,7 +11,7 @@ INSTALL_DIR="/opt/moOde_Radio_Cover"
 JS_TARGET="/var/www/js/lib.min.js"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
-NGINX_SITE="/etc/nginx/sites-enabled/default"
+NGINX_SITE="/etc/nginx/sites-available/moode-http.conf"
 
 echo ""
 echo "============================================="
@@ -22,7 +22,7 @@ echo ""
 read -p "  Confermi la disinstallazione? [s/N] " confirm
 [[ "$confirm" =~ ^[Ss]$ ]] || { echo "Disinstallazione annullata."; exit 0; }
 
-# ── 1. STOP E RIMOZIONE SERVIZIO ─────────────────────
+# — 1. STOP E RIMOZIONE SERVIZIO ——————————
 echo "[1/5] Rimozione servizio systemd..."
 sudo systemctl stop moode-sse.service    2>/dev/null || true
 sudo systemctl disable moode-sse.service 2>/dev/null || true
@@ -30,7 +30,7 @@ sudo rm -f "$SERVICE_FILE"
 sudo systemctl daemon-reload
 echo "  Servizio rimosso."
 
-# ── 2. RIPRISTINO lib.min.js ───────────────────────
+# — 2. RIPRISTINO lib.min.js ———————————
 echo "[2/5] Ripristino lib.min.js..."
 
 BACKUP=$(ls -t "${JS_TARGET}.bk."* 2>/dev/null | head -1)
@@ -58,7 +58,7 @@ sudo chown root:root "$JS_TARGET"
 sudo chmod 644 "$JS_TARGET"
 echo "  Permessi ripristinati."
 
-# ── 3. RIPRISTINO NGINX ─────────────────────────────
+# — 3. RIPRISTINO NGINX ————————————————
 echo "[3/5] Ripristino configurazione Nginx..."
 NGINX_BACKUP=$(ls -t "${NGINX_SITE}.bk."* 2>/dev/null | head -1)
 
@@ -77,10 +77,10 @@ if sudo nginx -t 2>/dev/null; then
     sudo nginx -s reload
     echo "  Nginx ripristinato."
 else
-    echo "  ATTENZIONE: test Nginx fallito dopo ripristino. Verifica manuale necessaria."
+    echo "  ATTENZIONE: test Nginx fallito. Verifica manuale necessaria."
 fi
 
-# ── 4. RIMOZIONE DIRECTORY INSTALLAZIONE ──────────────
+# — 4. RIMOZIONE DIRECTORY INSTALLAZIONE ——————
 echo "[4/5] Rimozione directory $INSTALL_DIR..."
 if [ -d "$INSTALL_DIR" ]; then
     sudo rm -rf "$INSTALL_DIR"
@@ -89,7 +89,7 @@ else
     echo "  Directory non trovata, skip."
 fi
 
-# ── 5. RIMOZIONE LOG ──────────────────────────────
+# — 5. RIMOZIONE LOG ————————————————
 echo "[5/5] Rimozione log..."
 sudo rm -f "$LOG_FILE"
 echo "  Log rimosso."
