@@ -1,4 +1,4 @@
-/* moode-sse-patch V7.6 — with MR+ badge */
+/* moode-sse-patch V7.6 — with MR+ badge toggle */
 
 ;(function () {
     'use strict';
@@ -8,22 +8,28 @@
     var rafPending     = false;
     var sseActive      = false;
     var pendingUrl     = null;
+    var userDisabled   = false;
+    var evtSourceRef   = null;
+    var savedLogoUrl   = null;
 
     var COVER_IDS = ['coverart-url', 'playbar-cover', 'cover-backdrop',
                      'ss-backdrop',  'ss-coverart-url'];
 
-    /* ── MR+ Badge ────────────────────────────── */
+    /* — MR+ Badge — */
     function createBadge() {
         var badge = document.createElement('div');
         badge.id = 'mrplus-badge';
         badge.textContent = 'MR+';
         badge.style.cssText =
-            'position:fixed;bottom:8px;right:8px;z-index:9999;' +
-            'background:rgba(200,80,0,0.85);color:#fff;' +
-            'font-family:monospace;font-size:10px;font-weight:bold;' +
-            'padding:2px 6px;border-radius:3px;' +
-            'pointer-events:none;opacity:0.7;' +
-            'transition:opacity 0.3s,background 0.3s;';
+            'position:fixed;bottom:12px;right:12px;z-index:9999;' +
+            'background:rgba(0,180,220,0.7);color:#fff;' +
+            'font-family:monospace;font-size:14px;font-weight:bold;' +
+            'padding:6px 12px;border-radius:4px;' +
+            'cursor:pointer;opacity:0.7;' +
+            'transition:opacity 0.3s,background 0.3s;' +
+            '-webkit-tap-highlight-color:transparent;';
+        badge.addEventListener('click', togglePlugin);
+        badge.addEventListener('touchend', function(e) { e.preventDefault(); togglePlugin(); });
         document.body.appendChild(badge);
         return badge;
     }
@@ -31,15 +37,61 @@
     function updateBadge() {
         var badge = document.getElementById('mrplus-badge');
         if (!badge) badge = createBadge();
-        if (sseActive) {
-            badge.style.background = 'rgba(0,160,80,0.85)';
+        if (userDisabled) {
+            badge.style.background = 'rgba(0,180,220,0.7)';
+            badge.style.opacity = '0.4';
+            badge.textContent = 'MR-';
+        } else if (sseActive) {
+            badge.style.background = 'rgba(220,200,0,0.9)';
             badge.style.opacity = '0.9';
+            badge.textContent = 'MR+';
         } else {
-            badge.style.background = 'rgba(200,80,0,0.85)';
+            badge.style.background = 'rgba(0,180,220,0.7)';
             badge.style.opacity = '0.5';
+            badge.textContent = 'MR+';
         }
     }
-    /* ─────────────────────────────────────────── */
+
+    function captureLogo() {
+        if (savedLogoUrl) return;
+        var el = document.querySelector('#coverart-url img');
+        if (el && el.src) savedLogoUrl = el.src;
+    }
+
+    function restoreLogo() {
+        var url = savedLogoUrl;
+        if (!url) return;
+        var el;
+        el = document.querySelector('#coverart-url img');
+        if (el) el.src = url;
+        el = document.querySelector('#playbar-cover img');
+        if (el) el.src = url;
+        el = document.querySelector('#cover-backdrop img');
+        if (el) el.src = url;
+        el = document.querySelector('#ss-coverart-url img');
+        if (el) el.src = url;
+        el = document.querySelector('#ss-backdrop img');
+        if (el) el.src = url;
+        if (typeof MPD !== 'undefined' && MPD.json) {
+            MPD.json.coverurl = url;
+        }
+    }
+
+    function togglePlugin() {
+        if (userDisabled) {
+            userDisabled = false;
+            savedLogoUrl = null;
+            initSSE();
+        } else {
+            userDisabled = true;
+            sseActive = false;
+            lastAppliedUrl = null;
+            if (evtSourceRef) { evtSourceRef.close(); evtSourceRef = null; }
+            restoreLogo();
+        }
+        updateBadge();
+    }
+    /* — end badge — */
 
     function extractTs(url) {
         var m = url && url.match(/[?&]t=(\d+)/);
@@ -240,10 +292,15 @@
     }
 
     function initSSE() {
+        if (userDisabled) return;
+        captureLogo();
         var evtSource = new EventSource('/cover-events');
+        evtSourceRef = evtSource;
 
         evtSource.onopen = function () {
+            if (userDisabled) { evtSource.close(); return; }
             sseActive = true;
+            captureLogo();
             updateBadge();
             if (lastAppliedUrl) {
                 pendingUrl = lastAppliedUrl;
@@ -252,10 +309,12 @@
         };
 
         evtSource.onmessage = function (e) {
+            if (userDisabled) return;
             try {
                 var data = JSON.parse(e.data);
                 if (data.event === 'cover_updated' && data.cover_url) {
                     sseActive = true;
+                    captureLogo();
                     updateBadge();
                     enqueueCoverUpdate(data.cover_url);
                 } else if (data.event === 'logo_restored' && data.cover_url) {
@@ -268,7 +327,8 @@
             sseActive = false;
             updateBadge();
             evtSource.close();
-            setTimeout(initSSE, 5000);
+            evtSourceRef = null;
+            if (!userDisabled) setTimeout(initSSE, 5000);
         };
     }
 
@@ -276,12 +336,11 @@
     installMutationGuard();
     installMpdInterceptor();
     window._sseDebug = function () {
-        return { sseActive: sseActive, lastAppliedUrl: lastAppliedUrl, pendingUrl: pendingUrl };
+        return { sseActive: sseActive, lastAppliedUrl: lastAppliedUrl, pendingUrl: pendingUrl, userDisabled: userDisabled, savedLogoUrl: savedLogoUrl };
     };
     console.log('[SSE] moode-sse-patch v7.6 loaded');
     initSSE();
 
-    /* Badge iniziale (attende il DOM) */
     if (document.body) { createBadge(); }
     else { document.addEventListener('DOMContentLoaded', createBadge); }
 
