@@ -113,6 +113,8 @@ Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
 - **Layer 2** — MutationObserver su `img.src`: ripristina immediatamente l'URL SSE se moOde tenta di sovrascriverlo
 - **Layer 3** — property hijack su `MPD.json.coverurl`: forza il valore SSE ad ogni ciclo di polling moOde
 
+**Zero-Black-Flash Transitions**: Abbiamo lavorato approfonditamente sulle transizioni grafiche per i cambi di sorgente (da NAS a NAS, da NAS a Radio e da Radio a NAS). Lo snippet JS è progettato per sovrascrivere il comportamento nativo di moOde, mantenendo la copertina precedente visibile in background fino al completo caricamento in memoria della nuova immagine. Questo approccio ci permette di azzerare (o ridurre al minimo assoluto in caso estremo di latenza di rete) il fastidioso effetto "schermo nero" durante i cambi traccia.
+
 #### 11. Badge MR+ — indicatore visivo con toggle on/off
 
 Il plugin mostra un badge **MR+** nell'angolo in basso a destra dell'interfaccia. Il badge è interattivo e permette di attivare/disattivare il plugin al volo, sia da touch (kiosk) che da click (browser).
@@ -325,6 +327,8 @@ The JS snippet injected into `lib.min.js` protects the SSE cover from three dire
 - **Layer 1** — intercepts jQuery's `$.fn.html` and blocks any write to cover divs when SSE is active
 - **Layer 2** — MutationObserver on `img.src`: immediately restores the SSE URL if moOde attempts to overwrite it
 - **Layer 3** — property hijack on `MPD.json.coverurl`: forces the SSE value on every moOde polling cycle
+
+**Zero-Black-Flash Transitions**: We have worked extensively on graphic transitions for source changes (NAS to NAS, NAS to Radio, and Radio to NAS). The JS snippet is designed to override moOde's native behaviour, keeping the previous cover visible in the background until the new image is fully loaded into memory. This approach allows us to eliminate (or reduce to an absolute minimum in extreme cases of network latency) the annoying "black screen" flash during track changes.
 
 #### 11. MR+ Badge — Visual Indicator with On/Off Toggle
 
