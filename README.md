@@ -111,6 +111,24 @@ Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
 - **Layer 2** — MutationObserver su `img.src`: ripristina immediatamente l'URL SSE se moOde tenta di sovrascriverlo
 - **Layer 3** — property hijack su `MPD.json.coverurl`: forza il valore SSE ad ogni ciclo di polling moOde
 
+#### 11. Badge MR+ — indicatore visivo con toggle on/off
+
+Il plugin mostra un badge **MR+** nell'angolo in basso a destra dell'interfaccia. Il badge è interattivo e permette di attivare/disattivare il plugin al volo, sia da touch (kiosk) che da click (browser).
+
+| Stato | Badge | Colore |
+|---|---|---|
+| Plugin attivo | **MR+** | 🟡 Giallo |
+| Plugin disattivato | **MR-** | 🔵 Celeste |
+| SSE disconnesso | **MR+** | 🔵 Celeste (bassa opacità) |
+
+Kiosk e browser operano in modo **indipendente**: ogni client può attivare o disattivare il plugin senza influenzare gli altri. Quando il plugin viene disattivato, il logo originale della stazione viene ripristinato automaticamente.
+
+I colori sono stati scelti per essere accessibili anche a utenti daltonici (no combinazioni rosso/verde).
+
+| Browser con MR+ attivo | Kiosk con MR+ attivo |
+| :---: | :---: |
+| ![Browser con badge MR+](docs/Immagine%202026-06-12%20194332.jpg) | ![Kiosk con badge MR+](docs/IMG20260612195811.jpg) |
+
 ### Prerequisito
 
 In moOde: **Preferences → Cover Art → Radio track covers = No**
@@ -304,6 +322,24 @@ The JS snippet injected into `lib.min.js` protects the SSE cover from three dire
 - **Layer 2** — MutationObserver on `img.src`: immediately restores the SSE URL if moOde attempts to overwrite it
 - **Layer 3** — property hijack on `MPD.json.coverurl`: forces the SSE value on every moOde polling cycle
 
+#### 11. MR+ Badge — Visual Indicator with On/Off Toggle
+
+The plugin displays an **MR+** badge in the bottom-right corner of the interface. The badge is interactive and allows enabling/disabling the plugin on the fly, both via touch (kiosk) and click (browser).
+
+| State | Badge | Colour |
+|---|---|---|
+| Plugin active | **MR+** | 🟡 Yellow |
+| Plugin disabled | **MR-** | 🔵 Light blue |
+| SSE disconnected | **MR+** | 🔵 Light blue (low opacity) |
+
+Kiosk and browser operate **independently**: each client can enable or disable the plugin without affecting the others. When the plugin is disabled, the original station logo is automatically restored.
+
+Colours were chosen to be accessible to colour-blind users (no red/green combinations).
+
+| Browser with MR+ active | Kiosk with MR+ active |
+| :---: | :---: |
+| ![Browser with MR+ badge](docs/Immagine%202026-06-12%20194332.jpg) | ![Kiosk with MR+ badge](docs/IMG20260612195811.jpg) |
+
 ### Prerequisite
 
 In moOde: **Preferences → Cover Art → Radio track covers = No**
@@ -357,7 +393,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-
 | TheAudioDB | `THEAUDIODB_API_KEY` | [theaudiodb.com/api_guide.php](https://www.theaudiodb.com/api_guide.php) |
 | Spotify | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com](https://developer.spotify.com) — requires Premium account |
 
-### File permissions
+### File Permissions
 
 The plugin is installed with standard permissions. To modify files after installation:
 
@@ -376,8 +412,8 @@ sudo chown moode:moode /var/www/js/lib.min.js
 
 ### Authors and Acknowledgements
 
-- **Ivo Scagliola** — co-author, design, development and final tester
-- **Marco Mosca** — co-author, design, development, testing
+- **Ivo Scagliola** — co-author, design, development and final testing
+- **Marco Mosca** — co-author, design, development and testing
 
 Special thanks to **Calzina** the cat, for her constant company (and keyboard-walking tests) during the development of this project.
 
