@@ -24,7 +24,8 @@
             'position:fixed;bottom:12px;right:12px;z-index:9999;' +
             'background:rgba(0,180,220,0.7);color:#fff;' +
             'font-family:monospace;font-size:14px;font-weight:bold;' +
-            'padding:6px 12px;border-radius:4px;' +
+            'padding:6px 12px;border-radius:4px;border:none;outline:none;' +
+            'box-shadow:none;line-height:normal;margin:0;' +
             'cursor:pointer;opacity:0.7;' +
             'transition:opacity 0.3s,background 0.3s;' +
             '-webkit-tap-highlight-color:transparent;';
