@@ -38,6 +38,10 @@
 
     /* — MR+ Badge — */
     function createBadge() {
+        var hideStyle = document.createElement('style');
+        hideStyle.innerHTML = '#format-badge, .audio-format, #cover-badge, .cover-badge, #audio-badge, .format-badge { display: none !important; }';
+        document.head.appendChild(hideStyle);
+
         var badge = document.createElement('div');
         badge.id = 'mrplus-badge';
         badge.textContent = 'MR+';
