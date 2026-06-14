@@ -21,7 +21,7 @@ Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Event
 
 ### Come funziona
 
-#### 1. Noise Gate a tre livelli
+#### 1. Noise Gate a three livelli
 
 Prima ancora di avviare una ricerca, il daemon analizza il metadata ricevuto da MPD e decide se è un segnale valido o rumore da ignorare.
 
@@ -82,7 +82,7 @@ Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca
 
 | moOde Nativo (Falso Positivo) | MR+ (Cover di Segmento) |
 | :---: | :---: |
-| ![moOde Native Fake Cover](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
+| ![moOde Native False Positive](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segmento | Keywords riconosciute |
 |---|---|
@@ -207,7 +207,7 @@ sudo chown moode:moode /var/www/js/lib.min.js
 
 ### Autori e Ringraziamenti
 
-- **Ivo Scagliola** — co-autore, progettazione, sviluppo e testing finale
+- **Ivo Scagliola** — co-auteur, progettazione, sviluppo e testing finale
 - **Marco Mosca** — co-autore, progettazione, sviluppo e testing
 
 Un ringraziamento speciale alla gatta **Calzina**, per la costante compagnia (e i test di pazienza sulla tastiera) durante le sessioni di sviluppo di questo progetto.
@@ -299,7 +299,7 @@ When the MR+ *noise gate* identifies a known segment, it blocks this erroneous s
 
 | Native moOde (False Positive) | MR+ (Segment Cover) |
 | :---: | :---: |
-| ![moOde Native Fake Cover](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
+| ![moOde Native False Positive](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
 | Segment | Recognised keywords |
 |---|---|
