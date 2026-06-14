@@ -798,236 +798,183 @@ def search_cover_parallel(artist, title, attempt=1, uuid_=None):
     """
     Parallel cover search across all enabled providers.
     Timebox: FAST_DEADLINE_S → TOTAL_DEADLINE_S.
-    Early stop if score >= EARLY_STOP_SCORE.
-    Cover selected by resolution: regex → head → pil.
-    x1.5 bonus if title exactly matches album name.
     """
-    RELEASE_TYPE_WEIGHTS = {
-        "album":      1.0,
-        "single":     0.9,
-        "compilation":0.4,
-        "appears_on": 0.5,
-        "ep":         0.7,
-        "live":       0.8,
-    }
+    start_time = time.time()
+    results = []
+    futures = {}
 
-    all_providers = [
-        ("Spotify",     search_spotify),
-        ("iTunes",      search_itunes),
-        ("Deezer",      search_deezer),
-        ("LastFM",      search_lastfm),
-        ("MusicBrainz", search_musicbrainz),
-        ("Discogs",     search_discogs),
-        ("TheAudioDB",  search_theaudiodb),
-    ]
-    providers = [(n, fn) for n, fn in all_providers if PROVIDERS_LIST.get(n, False)]
+    providers = []
+    if PROVIDERS_LIST.get("Spotify"):     providers.append(("Spotify",     search_spotify))
+    if PROVIDERS_LIST.get("iTunes"):      providers.append(("iTunes",      search_itunes))
+    if PROVIDERS_LIST.get("Deezer"):      providers.append(("Deezer",      search_deezer))
+    if PROVIDERS_LIST.get("LastFM"):      providers.append(("LastFM",      search_lastfm))
+    if PROVIDERS_LIST.get("MusicBrainz"): providers.append(("MusicBrainz", search_musicbrainz))
+    if PROVIDERS_LIST.get("Discogs"):     providers.append(("Discogs",     search_discogs))
+    if PROVIDERS_LIST.get("TheAudioDB"):  providers.append(("TheAudioDB",  search_theaudiodb))
 
-    results      = []
-    future_start = {}
-    reason       = "all_done"
-    stopped_early = False
+    logging.info(f"[search_cover_parallel] START attempt={attempt} fast={FAST_DEADLINE_S}s total={TOTAL_DEADLINE_S}s early>={EARLY_STOP_SCORE} artist='{artist}' title='{title}' uuid={uuid_}")
 
-    def _compute_best(res):
-        album_groups = defaultdict(list)
-        album_scores = defaultdict(float)
-        for cover_u, album_u, weight_u, provider_u in res:
-            placed = False
-            for key in album_groups:
-                if similarity(album_u, key) >= 0.8:
-                    album_groups[key].append((cover_u, provider_u))
-                    album_scores[key] += similarity(album_u, key) * weight_u
-                    placed = True
-                    break
-            if not placed:
-                album_groups[album_u].append((cover_u, provider_u))
-                album_scores[album_u] += 1.0 * weight_u
-        if not album_scores:
-            return None, 0.0, None, None
-        best_album    = max(album_scores.items(), key=lambda x: x[1])[0]
-        best_score    = album_scores[best_album]
-        cover_data    = album_groups[best_album]
-        # Resolution selection: regex → head → pil (3 passes)
-        def _best_res(url):
-            w, h = get_image_resolution(url, "regex")
-            if w > 0: return w * h
-            w, h = get_image_resolution(url, "head")
-            if w > 0: return w * h
-            w, h = get_image_resolution(url, "pil")
-            return w * h
-        cover_data.sort(key=lambda x: _best_res(x[0]), reverse=True)
-        chosen          = cover_data[0][0] if cover_data else None
-        chosen_provider = cover_data[0][1] if cover_data else None
-        return chosen, float(best_score), best_album, chosen_provider
+    with ThreadPoolExecutor(max_workers=len(providers) if providers else 1) as executor:
+        for name, func in providers:
+            futures[executor.submit(func, artist, title, None)] = name
 
-    logging.info(f"[search_cover_parallel] START attempt={attempt} "
-                 f"fast={FAST_DEADLINE_S:.1f}s total={TOTAL_DEADLINE_S:.1f}s "
-                 f"early>={EARLY_STOP_SCORE:.1f} "
-                 f"artist='{artist}' title='{title}' uuid={uuid_}")
+        done, not_done = wait(futures.keys(), timeout=FAST_DEADLINE_S, return_when=FIRST_COMPLETED)
 
-    executor = ThreadPoolExecutor(max_workers=max(len(providers), 1))
-    try:
-        future_to_provider = {}
-        futures = set()
-        for name, fn in providers:
-            fut = executor.submit(fn, artist, title, None)
-            future_to_provider[fut] = name
-            future_start[fut]       = time.monotonic()
-            futures.add(fut)
+        def eval_results(d_set):
+            best_score = -1.0
+            best_res   = None
+            for f in d_set:
+                prov_name = futures[f]
+                try:
+                    c, a, t = f.result()
+                    if c:
+                        score = 0.0
+                        w, h = get_image_resolution(c, mode="regex")
+                        if w and h:
+                            score += min(max(w, h) / 1000.0, 1.5)
+                        if t == "Album": score += 2.0
+                        elif t == "Single": score += 1.0
+                        if prov_name in ("Spotify", "iTunes", "Deezer"):
+                            score += 0.5
+                        results.append((c, a, prov_name, score))
+                        if score > best_score:
+                            best_score = score
+                            best_res   = (c, a, prov_name, score)
+                except Exception as e:
+                    logging.debug(f"[search_cover_parallel] {prov_name} error: {e}")
+            return best_res, best_score
 
-        t_start = time.monotonic()
+        best, score = eval_results(done)
 
-        while futures:
-            elapsed   = time.monotonic() - t_start
-            remaining = TOTAL_DEADLINE_S - elapsed
-            if remaining <= 0:
-                reason = "timeout"
-                break
-
-            done, _ = wait(futures, timeout=min(0.25, remaining), return_when=FIRST_COMPLETED)
-            if not done:
-                if time.monotonic() - t_start >= FAST_DEADLINE_S and results:
+        reason = "all_done"
+        if not_done:
+            if score >= EARLY_STOP_SCORE:
+                reason = "early_stop"
+            else:
+                rem_time = TOTAL_DEADLINE_S - (time.time() - start_time)
+                if rem_time > 0:
+                    done2, not_done2 = wait(not_done, timeout=rem_time, return_when=FIRST_COMPLETED)
+                    best2, score2 = eval_results(done2)
+                    if score2 > score:
+                        best, score = best2, score2
+                    if not_done2: reason = "timeout"
+                else:
                     reason = "fast_deadline"
-                    break
+
+    ms_taken = int((time.time() - start_time) * 1000)
+    done_count = len(providers) - len(not_done) if reason != "timeout" else len(providers) - len(not_done) # Approssimativo se timeout
+
+    if best:
+        c, a, p, s = best
+        logging.info(f"[search_cover_parallel] END attempt={attempt} reason={reason} done={done_count}/{len(providers)} ms={ms_taken} best_score={s:.1f} album='{a}' provider={p} uuid={uuid_}")
+        logging.info(f"[search_cover_parallel] ✅ Album chosen: '{a}' provider={p} (weighted votes [{s:.1f}])")
+        return c, p, s
+    else:
+        logging.info(f"[search_cover_parallel] END attempt={attempt} reason={reason} done={done_count}/{len(providers)} ms={ms_taken} best_score=0.0 album='None' provider=None uuid={uuid_}")
+        logging.info(f"[search_cover_parallel] ❌ No cover found uuid={uuid_}")
+        return None, None, 0.0
+
+@logging_lru_cache(maxsize=256)
+def resolve_cover_cached(artist, title, stream_url=None, station_name=None, uuid_=None):
+    """
+    1. Check Radio Paradise
+    2. Try Attempt 1 (normalized strings)
+    3. Try Attempt 2 (aggressive clean)
+    """
+    if stream_url and station_name:
+        rp = search_radio_paradise(station_name, artist, title)
+        if rp: return rp, "RadioParadise", 10.0
+
+    a_1 = normalize_for_search(artist)
+    t_1 = normalize_for_search(title)
+    logging.info(f"[worker] 🔍 ATTEMPT 1: '{a_1}' - '{t_1}' uuid={uuid_}")
+    c1, p1, s1 = search_cover_parallel(a_1, t_1, attempt=1, uuid_=uuid_)
+    if c1 and s1 >= 1.0:
+        logging.info(f"[worker] ✅ Attempt 1 accepted score={s1:.1f} provider={p1} uuid={uuid_}")
+        return c1, p1, s1
+    elif c1:
+        logging.info(f"[worker] ⚠️ Attempt 1 score too low ({s1:.1f}), discarding uuid={uuid_}")
+
+    a_2 = clean_artist_name(artist)
+    t_2 = normalize_title(title, artist)
+    logging.info(f"[worker] 🔄 ATTEMPT 2: '{a_2}' - '{t_2}' uuid={uuid_}")
+    c2, p2, s2 = search_cover_parallel(a_2, t_2, attempt=2, uuid_=uuid_)
+    if c2:
+        logging.info(f"[worker] ✅ Attempt 2 accepted score={s2:.1f} provider={p2} uuid={uuid_}")
+        return c2, p2, s2
+
+    logging.info(f"[worker] ❌ No cover after 2 attempts uuid={uuid_}")
+    return None, None, 0.0
+
+# ================= BACKGROUND WORKER =================
+class BackgroundWorker(Thread):
+    def __init__(self, q):
+        super().__init__()
+        self.q = q
+        self.daemon = True
+
+    def run(self):
+        logging.info("[worker] 🟢 BackgroundWorker started")
+        while not _shutdown_event.is_set():
+            try:
+                task = self.q.get(timeout=1.0)
+            except Empty:
                 continue
 
-            for future in done:
-                futures.discard(future)
-                name  = future_to_provider.get(future, "Unknown")
-                try:
-                    cover, album_found, album_type = future.result()
-                    if cover and album_found:
-                        if album_type:
-                            weight = RELEASE_TYPE_WEIGHTS.get(album_type.lower(), 1.0) + 0.05
-                        else:
-                            weight = 0.95
-                        if artist and artist.lower() in album_found.lower():
-                            weight *= 0.85
-                        alb_low = album_found.lower()
-                        art_low = artist.lower() if artist else ""
-                        ti_low  = title.lower()  if title  else ""
-                        # x1.5 bonus if title exactly matches album name
-                        if ti_low and ti_low == alb_low:
-                            weight *= 1.5
-                        if "vol." in alb_low or "volume" in alb_low:
-                            weight = 0.7
-                        if "best of" in alb_low or "greatest hits" in alb_low:
-                            weight = 0.6 if art_low and art_low in alb_low else 0.4
-                        results.append((cover, album_found, weight, name))
-                        logging.debug(f"[search_cover_parallel] ✅ {name}: '{album_found}' type={album_type} w={weight:.2f}")
-                    else:
-                        logging.debug(f"[search_cover_parallel] ❌ {name}: no cover")
-                except Exception as e:
-                    logging.error(f"[search_cover_parallel] ❌ {name} error: {e}")
+            uuid_, artist, title, st_url, st_name = task
+            logging.info(f"[worker] 🎵 Start uuid={uuid_}")
 
-            # Early stop
-            if results:
-                _, score_now, _, _ = _compute_best(results)
-                if score_now >= EARLY_STOP_SCORE:
-                    reason = "early_stop"
-                    stopped_early = True
-                    break
+            # Check noise
+            is_n, seg_type = is_noise(title, st_name)
+            if is_n:
+                if seg_type:
+                    seg_url = get_segment_cover_url(seg_type)
+                    if seg_url:
+                        logging.info(f"[worker] 🟡 Noise Segment: {seg_type} → cover uuid={uuid_}")
+                        publish_event("cover_updated", seg_url)
+                        self.q.task_done()
+                        continue
+                
+                logging.info(f"[worker] 🧹 Pure Noise detected — restoring logo uuid={uuid_}")
+                restore_logo(st_url, st_name)
+                self.q.task_done()
+                continue
 
-            # Fast deadline
-            if not stopped_early and time.monotonic() - t_start >= FAST_DEADLINE_S and results:
-                reason = "fast_deadline"
-                break
+            cover_url, prov, score = resolve_cover_cached(artist, title, st_url, st_name, uuid_=uuid_)
 
-    finally:
-        pass
+            if cover_url:
+                logging.info(f"[worker] 🟩 COVER APPLIED uuid={uuid_} Station='{st_name}' Artist='{artist}' Title='{artist} - {title}' provider={prov}")
+                publish_event("cover_updated", cover_url)
+            else:
+                logging.info(f"[worker] ♻️ No cover — logo restored uuid={uuid_}")
+                restore_logo(st_url, st_name)
 
-    elapsed_ms = (time.monotonic() - t_start) * 1000.0
-    done_cnt   = len(providers) - len(futures)
-    chosen, score, album_name, provider = _compute_best(results) if results else (None, 0.0, None, None)
+            self.q.task_done()
 
-    logging.info(f"[search_cover_parallel] END attempt={attempt} reason={reason} "
-                 f"done={done_cnt}/{len(providers)} ms={elapsed_ms:.0f} "
-                 f"best_score={score:.1f} album='{album_name}' provider={provider} uuid={uuid_}")
-
-    if not results or not chosen:
-        logging.info(f"[search_cover_parallel] ❌ No cover found uuid={uuid_}")
-        return None, 0.0, None
-
-    logging.info(f"[search_cover_parallel] ✅ Album chosen: '{album_name}' "
-                 f"provider={provider} (weighted votes [{score:.1f}])")
-    return chosen, score, provider
-
-# ================= HEALTH CHECK =================
-def health_check_loop():
-    logging.info("🚑 Health Check Service: STARTED")
-    while not _shutdown_event.is_set():
-        time.sleep(HEALTH_CHECK_INTERVAL)
-        if _shutdown_event.is_set(): break
-        try:
-            ts    = time.strftime("%d/%m %H:%M")
-            parts = []
-            s_img, _, _  = search_spotify(REF_ARTIST, REF_TRACK)
-            parts.append(f"Spotify {'✅' if s_img else '❌'}")
-            d_img, _, _  = search_deezer(REF_ARTIST, REF_TRACK)
-            parts.append(f"Deezer {'✅' if d_img else '❌'}")
-            i_img, _, _  = search_itunes(REF_ARTIST, REF_TRACK)
-            parts.append(f"iTunes {'✅' if i_img else '❌'}")
-            mb_img, _, _ = search_musicbrainz(REF_ARTIST, REF_TRACK)
-            parts.append(f"MusicB {'✅' if mb_img else '❌'}")
-            l_img, _, _  = search_lastfm(REF_ARTIST, REF_TRACK)
-            parts.append(f"LastFM {'✅' if l_img else '❌'}")
-            di_img, _, _ = search_discogs(REF_ARTIST, REF_TRACK)
-            parts.append(f"Discogs {'✅' if di_img else '❌'}")
-            if PROVIDERS_LIST.get("TheAudioDB", False):
-                ta_img, _, _ = search_theaudiodb(REF_ARTIST, REF_TRACK)
-                parts.append(f"TheAudioDB {'✅' if ta_img else '❌'}")
-            logging.info(f"🩺 [{ts}] " + " | ".join(parts))
-        except Exception as e:
-            logging.error(f"🩺 Health Check ERROR: {e}")
-
-# ================= SSE =================
-def fs_path_to_url(fs_path, web_root="/var/local/www"):
-    if not fs_path.startswith(web_root):
-        raise ValueError(f"Path {fs_path} not under web root {web_root}")
-    return quote(fs_path[len(web_root):])
-
-def publish_event(message, cover_path=None, provider=None):
+# ================= SSE PUBLISHER =================
+def publish_event(event_type, cover_url):
     global _last_cover_event
-    payload = {"event": message}
-
-    if message == "logo_restored" and cover_path:
-        try:
-            url_path = fs_path_to_url(cover_path)
-            payload["cover_url"] = f"{url_path}?t={int(time.time() * 1000)}"
-            logging.info(f"[publish_event] logo_restored → {url_path}")
-        except ValueError as e:
-            logging.error(f"[publish_event] ❌ invalid path: {cover_path} — {e}")
-            payload["cover_url"] = None
-
-    elif message == "cover_updated" and cover_path:
-        payload["cover_url"] = f"{cover_path}?t={int(time.time() * 1000)}"
-        if provider:
-            payload["provider"] = provider
-        logging.info(f"[publish_event] cover_updated → {cover_path}")
-
-    # _last_cover_event tracks BOTH cover_updated and logo_restored for correct replay
-    if message == "cover_updated" and cover_path:
-        with _last_cover_lock:
-            _last_cover_event = json.dumps({"event": message, "url": cover_path})
-    elif message == "logo_restored" and payload.get("cover_url"):
-        with _last_cover_lock:
-            _last_cover_event = json.dumps({"event": message, "url": payload["cover_url"]})
-
+    with _last_cover_lock:
+        if event_type == "logo_restored" and _last_cover_event and _last_cover_event["event"] == "logo_restored":
+            if _last_cover_event["url"] == cover_url:
+                return  # Skip duplicate logo restores
+        
+        # Add timestamp to force image refresh on client if needed
+        ts_url = f"{cover_url}{'&' if '?' in cover_url else '?'}t={int(time.time()*1000)}"
+        _last_cover_event = {"event": event_type, "url": ts_url}
+        data = json.dumps(_last_cover_event)
+        
+    logging.info(f"[publish_event] {event_type} → {ts_url}")
+    
     with _sub_lock:
-        for q in list(_subscribers):
+        dead = []
+        for q in _subscribers:
             try:
-                q.put_nowait(json.dumps(payload))
-            except Exception as e:
-                logging.error(f"[publish_event] ❌ error sending to subscriber: {e}")
-                try: _subscribers.remove(q)
-                except ValueError: pass
-
-def register_subscriber(q):
-    with _sub_lock: _subscribers.append(q)
-
-def unregister_subscriber(q):
-    with _sub_lock:
-        try: _subscribers.remove(q)
-        except ValueError: pass
+                q.put_nowait(f"data: {data}\n\n")
+            except Exception:
+                dead.append(q)
+        for q in dead:
+            _subscribers.remove(q)
 
 def clear_last_cover_event():
     global _last_cover_event
@@ -1035,475 +982,297 @@ def clear_last_cover_event():
         _last_cover_event = None
     logging.info("[clear_last_cover_event] 🧹 Last cover event cleared")
 
-class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
-    address_family = socket.AF_INET6
-    daemon_threads = True
+def restore_logo(st_url, st_name):
+    logo = get_logo_from_db(st_url) if st_url else None
+    if logo:
+        target = f"/imagesw/radio-logos/{quote(os.path.basename(logo))}"
+        publish_event("logo_restored", target)
+    else:
+        publish_event("logo_restored", "/images/default-cover-v6.svg")
 
-    def server_bind(self):
-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
-        HTTPServer.server_bind(self)
-
+# ================= HTTP SERVER (SSE) =================
 class SSEHandler(BaseHTTPRequestHandler):
-    protocol_version = "HTTP/1.1"
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
 
-    def log_message(self, format, *args):
-        pass  # Suppress HTTP access logs
-
-    def send_sse(self, data):
-        try:
-            self.wfile.write(data.encode("utf-8"))
-            self.wfile.flush()
-            return True
-        except (BrokenPipeError, ConnectionResetError):
-            return False
-        except Exception as e:
-            logging.error(f"[send_sse] ❌ {e}")
-            return False
+    def do_POST(self):
+        if self.path == '/client-log':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length).decode('utf-8', errors='replace')
+            try:
+                import json
+                log_data = json.loads(post_data)
+                msg = log_data.get('message', 'No message')
+                logging.error(f"[KIOSK ERROR] {msg}")
+                # Also write to a dedicated file
+                with open("/var/log/radio-kiosk-crash.log", "a", encoding="utf-8") as lf:
+                    lf.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} [KIOSK] {msg}\n")
+            except Exception as e:
+                logging.error(f"[KIOSK ERROR] Failed to parse log: {e} - Data: {post_data}")
+                
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok"}')
+            return
+        
+        self.send_response(404)
+        self.end_headers()
 
     def do_GET(self):
-        if self.path != "/cover-events":
+        if self.path != '/cover-events':
             self.send_response(404)
             self.end_headers()
             return
 
         self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Content-Type",     "text/event-stream")
-        self.send_header("Cache-Control",    "no-cache")
-        self.send_header("Connection",       "keep-alive")
-        self.send_header("X-Accel-Buffering","no")
+        self.send_header('Content-Type', 'text/event-stream')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Connection', 'keep-alive')
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
-        q = Queue()
-        register_subscriber(q)
-        try:
-            if not self.send_sse(": connected\n\n"):
-                return
+        q = Queue(maxsize=10)
+        with _sub_lock:
+            _subscribers.append(q)
 
-            # Replay last event to new client
-            with _last_cover_lock:
-                last = _last_cover_event
-            if last:
-                logging.info(f"[SSEHandler] 🔄 Replay last event to new client: {last}")
-                time.sleep(LAST_EVENT_SEND_DELAY)
+        # Send last event immediately
+        with _last_cover_lock:
+            if _last_cover_event:
                 try:
-                    last_data = json.loads(last)
-                    replay_payload = {
-                        "event": last_data["event"],
-                        "cover_url": f"{last_data['url']}?t={int(time.time() * 1000)}"
-                    }
+                    init_data = json.dumps(_last_cover_event)
+                    self.wfile.write(f"data: {init_data}\n\n".encode('utf-8'))
+                    self.wfile.flush()
+                    logging.info(f"[SSEHandler] 🔄 Replay last event to new client: {init_data}")
                 except Exception:
-                    replay_payload = {"event": "cover_updated",
-                                      "cover_url": f"{last}?t={int(time.time() * 1000)}"}
-                self.send_sse(f"data: {json.dumps(replay_payload)}\n\n")
+                    pass
 
-            last_hb = time.time()
+        try:
             while not _shutdown_event.is_set():
                 try:
-                    msg = q.get(timeout=15)
+                    msg = q.get(timeout=2.0)
+                    self.wfile.write(msg.encode('utf-8'))
+                    self.wfile.flush()
                 except Empty:
-                    if time.time() - last_hb > 15:
-                        if not self.send_sse(": keepalive\n\n"): break
-                        last_hb = time.time()
-                    continue
-                if msg:
-                    if not self.send_sse(f"data: {msg}\n\n"): break
-        finally:
-            unregister_subscriber(q)
-
-def start_sse_server(bind=("::", 5000)):
-    server = ThreadingHTTPServer(bind, SSEHandler)
-    logging.info(f"[start_sse_server] Listening on {bind[0]}:{bind[1]}")
-    server.serve_forever()
-
-# ================= MPD =================
-from mpd import MPDClient, CommandError, ConnectionError
-
-client = MPDClient()
-client.timeout     = 10
-client.idletimeout = None
-
-def connect_mpd():
-    backoff = 1
-    while True:
-        try:
-            client.disconnect()
+                    # Keep-alive ping
+                    self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
         except Exception:
             pass
-        try:
-            client.connect("localhost", 6600)
-            logging.info("[connect_mpd] ✅ MPD connected")
-            return
-        except Exception as e:
-            logging.error(f"[connect_mpd] ❌ {e} — retry in {backoff}s")
-            time.sleep(backoff)
-            backoff = min(backoff * 2, 30)
-
-def get_current_track_mpd():
-    try:
-        status  = client.status()
-        state   = status.get("state")
-        if state != "play":
-            return state, None, None, None, None, None
-        current    = client.currentsong()
-        f_url      = current.get("file", "")
-        station    = sanitize(current.get("name", "") or "Unknown Radio")
-        full_title = current.get("title", "")
-        artist, title = split_artist_title(full_title)
-        album = current.get("album", "")
-        return state, artist, title, album, station, f_url
-    except (CommandError, ConnectionError):
-        connect_mpd()
-        return None, None, None, None, None, None
-
-# ================= LISTEN EVENTS =================
-def listen_events():
-    station_id        = None
-    last_station_id   = None
-    station_name      = None
-    last_station_name = None
-    current_logo_path = None
-    last_logo_path    = None
-    last_track_hash   = None
-
-    worker_lock          = Lock()
-    worker_thread        = None
-    current_worker_event = None
-    worker_cancel_event  = None
-
-    post_switch         = False
-    pre_switch_hash     = None
-    last_confirmed_hash = None
-
-    # Active segment flag — worker does not overwrite segment cover
-    current_segment = None
-
-    def enqueue_track_event(event):
-        nonlocal worker_thread, current_worker_event, worker_cancel_event
-        with worker_lock:
-            event["_uuid"] = str(uuid.uuid4())
-            if worker_thread and worker_thread.is_alive():
-                logging.info(f"[starter] ⛔ Cancelling worker for uuid={current_worker_event['_uuid']}")
-                worker_cancel_event.set()
-            worker_cancel_event  = Event()
-            current_worker_event = event
-            worker_thread = Thread(
-                target=track_worker,
-                args=(event, worker_cancel_event),
-                daemon=True
-            )
-            worker_thread.start()
-            logging.info(f"[starter] ▶️ Worker started immediately uuid={event['_uuid']}")
-
-    def track_worker(event, cancel_event):
-        nonlocal worker_thread, current_worker_event, current_segment
-        uuid_     = event.get("_uuid", "unknown")
-        logo_path = event.get("logo_path")
-
-        logging.info(f"[worker] 🎵 Start uuid={uuid_}")
-
-
-        cover_url = None
-        provider  = None
-
-        if event.get("action") == "track":
-            raw_artist       = event.get("raw_artist", "")
-            raw_title        = event.get("raw_title",  "")
-            station_name_val = event.get("station_name", "Unknown")
-
-            # Decode HTML entities before search
-            raw_artist = html.unescape(raw_artist) if raw_artist else ""
-            raw_title  = html.unescape(raw_title)  if raw_title  else ""
-
-            logging.info(f"[worker] 🎵 Station='{station_name_val}' "
-                         f"Artist='{raw_artist}' Title='{raw_title}' uuid={uuid_}")
-
-            # Debounce before search — cancelled immediately if a new track arrives
-            if DEBOUNCE_MS > 0:
-                logging.info(f"[worker] ⏳ Debounce {DEBOUNCE_MS:.2f}s uuid={uuid_}")
-                cancel_event.wait(timeout=DEBOUNCE_MS)
-                if cancel_event.is_set():
-                    logging.info(f"[worker] ❌ Cancelled during debounce uuid={uuid_}")
-                    return
-
-                # Check active segment after debounce — avoids unnecessary search
-                if current_segment:
-                    logging.info(f"[worker] 🚫 Segment active after debounce ({current_segment}), skip search uuid={uuid_}")
-                    return
-
-            # Radio Paradise API bypass
-            if "radio paradise" in station_name_val.lower():
-                rp_artist, rp_title = split_artist_title(raw_title)
-                if not rp_artist: rp_artist = raw_artist
-                cover_url = search_radio_paradise(station_name_val, rp_artist, rp_title)
-                if cover_url:
-                    provider = "RadioParadise"
-                    logging.info(f"[worker] ✅ RadioParadise cover found uuid={uuid_}")
-
-            if not cover_url:
-                # ATTEMPT 1 — light cleanup
-                artist_1, title_1 = split_artist_title(raw_title)
-                if not artist_1:
-                    artist_1 = raw_artist
-                    title_1  = raw_title
-                artist_1 = normalize_for_search(artist_1)
-                title_1  = normalize_for_search(title_1)
-                logging.info(f"[worker] 🔍 ATTEMPT 1: '{artist_1}' - '{title_1}' uuid={uuid_}")
-                cover_url, score1, provider = search_cover_parallel(artist_1, title_1, attempt=1, uuid_=uuid_)
-                if cover_url and score1 >= 1.5:
-                    logging.info(f"[worker] ✅ Attempt 1 accepted score={score1:.1f} provider={provider} uuid={uuid_}")
-                elif cover_url and score1 < 1.5:
-                    logging.info(f"[worker] ⚠️ Attempt 1 score too low ({score1:.1f}), discarding uuid={uuid_}")
-                    cover_url = None
-
-                if cancel_event.is_set():
-                    logging.info(f"[worker] ❌ Cancelled after attempt 1 uuid={uuid_}")
-                    return
-
-                # ATTEMPT 2 — aggressive cleanup (only if attempt 1 failed)
-                if not cover_url:
-                    artist_2 = clean_artist_name(raw_artist) if raw_artist else artist_1
-                    title_2  = normalize_title(raw_title, artist=raw_artist) if raw_title else title_1
-                    logging.info(f"[worker] 🔄 ATTEMPT 2: '{artist_2}' - '{title_2}' uuid={uuid_}")
-                    cover_url, score2, provider = search_cover_parallel(artist_2, title_2, attempt=2, uuid_=uuid_)
-                    if cover_url and score2 >= 0.9:
-                        logging.info(f"[worker] ✅ Attempt 2 accepted score={score2:.1f} provider={provider} uuid={uuid_}")
-                    elif cover_url and score2 < 0.9:
-                        logging.info(f"[worker] ⚠️ Attempt 2 score too low ({score2:.1f}), discarding uuid={uuid_}")
-                        cover_url = None
-                    else:
-                        logging.info(f"[worker] ❌ No cover after 2 attempts uuid={uuid_}")
-
-                if cancel_event.is_set():
-                    logging.info(f"[worker] ❌ Cancelled after attempt 2 uuid={uuid_}")
-                    return
-
-        # Apply result
-        with worker_lock:
-            if not current_worker_event or current_worker_event.get("_uuid") != uuid_:
-                logging.info(f"[worker] ⏹️ Obsolete result, skip uuid={uuid_}")
-                return
-
-            if event.get("action") == "track":
-                # Skip publish if an active segment is set
-                if current_segment:
-                    logging.info(f"[worker] 🚫 Segment active ({current_segment}), skip publish uuid={uuid_}")
-                    worker_thread        = None
-                    current_worker_event = None
-                    return
-
-                if cover_url:
-                    logging.info(f"[worker] 🟩 COVER APPLIED uuid={uuid_} "
-                                 f"Station='{event.get('station_name')}' "
-                                 f"Artist='{event.get('raw_artist')}' "
-                                 f"Title='{event.get('raw_title')}' "
-                                 f"provider={provider}")
-                    publish_event("cover_updated", cover_url, provider=provider)
-                else:
-                    logging.info(f"[worker] ♻️ No cover — logo restored uuid={uuid_}")
-                    publish_event("logo_restored", logo_path)
-
-            elif event.get("action") == "restore_logo":
-                logging.info(f"[worker] ♻️ Logo restored Station='{event.get('station_name')}' uuid={uuid_}")
-                publish_event("logo_restored", logo_path)
-
-            worker_thread        = None
-            current_worker_event = None
-
-    connect_mpd()
-    logging.info("[listen_events] Starting listen_events()")
-
-    while True:
-        try:
-            state, artist, title, album, station_name, station_id = get_current_track_mpd()
-            is_stream = station_id.startswith(("http://","https://")) if station_id else False
-
-            clean_artist = normalize_id(artist or "Unknown")
-            clean_title  = normalize_id(title  or "Unknown")
-            missing_metadata  = (clean_artist == "Unknown" and clean_title == "Unknown")
-            partially_missing = (clean_artist == "Unknown" or  clean_title == "Unknown")
-            track_hash = f"{clean_artist}|{clean_title}" if not missing_metadata else None
-
-            # Player not playing or local music
-            if state != "play" or not is_stream:
-                if last_station_id:
-                    last_logo_path = get_logo_from_db(last_station_id)
-                    event = {
-                        "action":       "restore_logo",
-                        "station_name": last_station_name,
-                        "logo_path":    last_logo_path,
-                    }
-                    enqueue_track_event(event)
-                last_track_hash = None
-                last_station_id = None
-                current_segment = None
-                if state != "play":
-                    logging.info("[listen_events] 🟥 Player paused/stopped")
-                else:
-                    logging.info("[listen_events] 🎵 Local music — skipping")
-                continue
-
-            # =========================
-            # STATION CHANGE
-            # =========================
-            if station_id != last_station_id:
-                post_switch         = True
-                pre_switch_hash     = last_track_hash
-                last_track_hash     = None
-                last_confirmed_hash = None
-                current_segment     = None  # Reset active segment on station change
-
-                logging.info("+" * 40)
-                logging.info(f"[listen_events] 🟩 Station: {last_station_name or '<none>'} → {station_name}")
-
-                last_station_id   = station_id
-                last_station_name = station_name
-                current_logo_path = get_logo_from_db(station_id)
-                last_logo_path    = current_logo_path
-                clear_last_cover_event()
-
-                publish_event("logo_restored", current_logo_path)
-
-
-                if partially_missing:
-                    continue
-
-                if not missing_metadata:
-                    last_track_hash = track_hash
-                    full_title = f"{artist} - {title}" if artist and title else title or ""
-                    event = {
-                        "action":       "track",
-                        "raw_artist":   artist,
-                        "raw_title":    full_title,
-                        "track_hash":   track_hash,
-                        "station_id":   station_id,
-                        "station_name": station_name,
-                        "logo_path":    current_logo_path,
-                    }
-                    enqueue_track_event(event)
-                continue
-
-            # =========================
-            # SAME STATION
-            # =========================
-            if missing_metadata:
-                logging.info(f"[listen_events] ⚠️ Missing metadata: {clean_artist} - {clean_title}")
-                continue
-
-            if partially_missing:
-               logging.info(f"[listen_events] ⚠️ Partially missing: {clean_artist} - {clean_title}")
-               if title and title.endswith('~~~'):
-                   publish_event("logo_restored", current_logo_path)
-                   continue
-               # Check noise gate FIRST — catches ADBREAK_END and other segments
-               noise, segment = is_noise(clean_title, station_name)
-               if noise:
-                   logging.info(f"[listen_events] 🔇 Partially missing noise: '{clean_title}' segment={segment}")
-                   if segment:
-                       current_segment = segment
-                       cover_url = get_segment_cover_url(segment)
-                       logging.info(f"[DEBUG segment] segment={segment} cover_url={cover_url} map={SEGMENT_COVER_MAP}")
-                       if cover_url:
-                            publish_event("cover_updated", cover_url)
-                       else:
-                           publish_event("logo_restored", current_logo_path)
-               else:
-                   publish_event("logo_restored", current_logo_path)
-               continue
-
-            # Skip repeated metadata
-            if not post_switch and track_hash == last_track_hash:
-                logging.info(f"[listen_events] ⚠️ Skipping repeated track: {clean_artist} - {clean_title}")
-                continue
-
-            # Post-switch: ignore stale events matching pre-switch
-            if post_switch and pre_switch_hash and track_hash == pre_switch_hash:
-                logging.info(f"[listen_events] ⚠️ Stale post-switch ignored: {clean_artist} - {clean_title}")
-                continue
-
-            # Build full_title from raw metadata
-            full_title = f"{artist} - {title}" if artist and title else title or ""
-
-            # Noise gate — before enqueue, does not cancel active worker
-            noise, segment = is_noise(full_title, station_name)
-            if noise:
-                logging.info(f"[listen_events] 🔇 Noise ignored (no enqueue): '{full_title}' segment={segment}")
-                if segment:
-                    current_segment = segment
-                    cover_url = get_segment_cover_url(segment)
-                    if cover_url:
-                        publish_event("cover_updated", cover_url)
-                    else:
-                        publish_event("logo_restored", current_logo_path)
-                else:
-                    publish_event("logo_restored", current_logo_path)
-                continue                
-
-            # Post-switch: first valid metadata after station change
-            if post_switch:
-                post_switch = False
-                logging.info(f"[POST_SWITCH] RUN immediately: {clean_artist} - {clean_title}")
-
-            # Valid track: reset active segment and start worker
-            current_segment = None
-            last_track_hash = track_hash
-            event = {
-                "action":       "track",
-                "raw_artist":   artist,
-                "raw_title":    full_title,
-                "track_hash":   track_hash,
-                "station_id":   station_id,
-                "station_name": station_name,
-                "logo_path":    current_logo_path,
-            }
-            enqueue_track_event(event)
-
-        except (CommandError, ConnectionError) as e:
-            logging.error(f"[listen_events] ❌ MPD error: {e}")
-            connect_mpd()
-            time.sleep(1)
-        except Exception as e:
-            logging.error(f"[listen_events] ❌ Generic error: {e}")
-            time.sleep(1)
         finally:
+            with _sub_lock:
+                if q in _subscribers:
+                    _subscribers.remove(q)
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+
+def run_sse_server():
+    server = ThreadedHTTPServer(('127.0.0.1', 5000), SSEHandler)
+    logging.info("[SSE] 🟢 Server listening on 127.0.0.1:5000/cover-events")
+    while not _shutdown_event.is_set():
+        server.handle_request()
+
+# ================= MPD LISTENER =================
+def fetch_mpd_status():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2.0)
+        s.connect(('127.0.0.1', 6600))
+        res = s.recv(1024).decode()
+        if not res.startswith("OK MPD"):
+            return None
+        
+        s.sendall(b"status\n")
+        status_data = {}
+        while True:
+            line = s.recv(1024).decode()
+            for l in line.split('\n'):
+                if l.startswith("OK"): break
+                if ": " in l:
+                    k, v = l.split(": ", 1)
+                    status_data[k] = v.strip()
+            if "OK\n" in line: break
+
+        s.sendall(b"currentsong\n")
+        song_data = {}
+        while True:
+            line = s.recv(1024).decode()
+            for l in line.split('\n'):
+                if l.startswith("OK"): break
+                if ": " in l:
+                    k, v = l.split(": ", 1)
+                    if k in song_data: song_data[k] += f" ~ {v.strip()}"
+                    else: song_data[k] = v.strip()
+            if "OK\n" in line: break
+            
+        s.close()
+        
+        return {
+            "state": status_data.get("state"),
+            "file": song_data.get("file", ""),
+            "Name": song_data.get("Name", ""),
+            "Title": song_data.get("Title", song_data.get("Name", "")),
+            "Artist": song_data.get("Artist", "")
+        }
+    except Exception as e:
+        logging.error(f"[fetch_mpd_status] MPD socket error: {e}")
+        return None
+
+def listen_events(task_queue):
+    import subprocess
+    logging.info("[listen_events] 🟢 MPD Idle listener started")
+    
+    last_id = None
+    debounce_timer = None
+    
+    while not _shutdown_event.is_set():
+        try:
+            # Block until MPD event
+            p = subprocess.Popen(["mpc", "idle", "player"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            while p.poll() is None and not _shutdown_event.is_set():
+                time.sleep(0.5)
+            
+            if _shutdown_event.is_set():
+                p.terminate()
+                break
+                
+            status = fetch_mpd_status()
+            if not status: continue
+            
+            state = status.get("state")
+            file_url = status.get("file", "")
+            st_name = status.get("Name", "")
+            title = status.get("Title", "")
+            artist = status.get("Artist", "")
+            
+            if state != "play":
+                continue
+                
+            if not file_url.startswith("http"):
+                logging.info("[listen_events] 🎵 Local music — skipping")
+                clear_last_cover_event()
+                continue
+                
+            if not artist and " - " in title:
+                artist, title = split_artist_title(title)
+                
+            current_id = f"{st_name}|{artist}|{title}"
+            if current_id == last_id:
+                logging.info(f"[listen_events] ⚠️ Skipping repeated track: {artist} - {title}")
+                continue
+                
+            last_id = current_id
+            
+            if st_name != getattr(listen_events, "last_station", None):
+                logging.info(f"[listen_events] 🟩 Station: {getattr(listen_events, 'last_station', 'None')} → {st_name}")
+                listen_events.last_station = st_name
+                clear_last_cover_event()
+                restore_logo(file_url, st_name)
+            
+            uuid_ = str(uuid.uuid4())
+            
+            if debounce_timer:
+                debounce_timer.cancel()
+                
+            def push_task(u, a, t, f, sn):
+                logging.info(f"[worker] 🎵 Station='{sn}' Artist='{a}' Title='{a} - {t}' uuid={u}")
+                task_queue.put((u, a, t, f, sn))
+
+            # Se cambio stazione (o prima volta), esegui subito
+            if not hasattr(listen_events, "last_station_uuid") or getattr(listen_events, "last_station_uuid") != st_name:
+                listen_events.last_station_uuid = st_name
+                logging.info(f"[POST_SWITCH] RUN immediately: {artist} - {title}")
+                from threading import Timer
+                logging.info(f"[starter] ▶️ Worker started immediately uuid={uuid_}")
+                push_task(uuid_, artist, title, file_url, st_name)
+            else:
+                from threading import Timer
+                logging.info(f"[worker] ⏳ Debounce {DEBOUNCE_MS:.2f}s uuid={uuid_}")
+                debounce_timer = Timer(DEBOUNCE_MS, push_task, args=[uuid_, artist, title, file_url, st_name])
+                debounce_timer.start()
+                
+        except Exception as e:
+            logging.error(f"[listen_events] Error: {e}")
+            time.sleep(2)
+
+# ================= HEALTH CHECK =================
+def health_check_loop():
+    logging.info("[health] 🟢 Health check started")
+    while not _shutdown_event.is_set():
+        time.sleep(HEALTH_CHECK_INTERVAL)
+        if _shutdown_event.is_set(): break
+        
+        statuses = []
+        for name in ["Spotify", "Deezer", "iTunes", "MusicBrainz", "LastFM", "Discogs", "TheAudioDB"]:
+            if not PROVIDERS_LIST.get(name):
+                continue
+            res = False
             try:
-                client.idle("player")
-            except (CommandError, ConnectionError) as e:
-                logging.error(f"[listen_events] ❌ idle() error: {e} — reconnecting")
-                connect_mpd()
-                time.sleep(1)
+                if name == "Spotify":
+                    t = get_spotify_token()
+                    res = bool(t)
+                elif name == "Deezer":
+                    r = requests.get("https://api.deezer.com/search?q=test", timeout=3)
+                    res = r.ok
+                elif name == "iTunes":
+                    r = requests.get("https://itunes.apple.com/search?term=test", timeout=3)
+                    res = r.ok
+                elif name == "MusicBrainz":
+                    r = requests.get("https://musicbrainz.org/ws/2/recording?query=test&fmt=json", timeout=3)
+                    res = r.ok
+                elif name == "LastFM":
+                    if LASTFM_API_KEY:
+                        r = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={LASTFM_API_KEY}&artist=cher&track=believe&format=json", timeout=3)
+                        res = r.ok
+                elif name == "Discogs":
+                    if DISCOGS_TOKEN:
+                        r = requests.get(f"https://api.discogs.com/database/search?q=test&token={DISCOGS_TOKEN}", timeout=3)
+                        res = r.ok
+                elif name == "TheAudioDB":
+                    r = requests.get(f"https://www.theaudiodb.com/api/v1/json/{THEAUDIODB_API_KEY}/searchtrack.php?s=coldplay&t=yellow", timeout=3)
+                    res = r.ok
+            except Exception:
+                pass
+            
+            icon = "✅" if res else "❌"
+            status_name = "MusicB" if name == "MusicBrainz" else name
+            statuses.append(f"{status_name} {icon}")
+            
+        logging.info(f"🩺 [{time.strftime('%d/%m %H:%M')}] " + " | ".join(statuses))
 
 # ================= MAIN =================
-if __name__ == "__main__":
+def main():
     read_global()
+    
+    # Init segment mapping
+    global SEGMENT_COVER_MAP
+    SEGMENT_COVER_MAP = {
+        SEGMENT_METEO:       SEGMENT_COVER_METEO,
+        SEGMENT_TRAFFIC:     SEGMENT_COVER_TRAFFIC,
+        SEGMENT_NEWS:        SEGMENT_COVER_NEWS,
+        SEGMENT_ADVERTISING: SEGMENT_COVER_ADVERTISING
+    }
+    
     log_config_summary()
 
-    # Populate segment cover map after read_global
-    SEGMENT_COVER_MAP[SEGMENT_METEO]       = SEGMENT_COVER_METEO
-    SEGMENT_COVER_MAP[SEGMENT_TRAFFIC]     = SEGMENT_COVER_TRAFFIC
-    SEGMENT_COVER_MAP[SEGMENT_NEWS]        = SEGMENT_COVER_NEWS
-    SEGMENT_COVER_MAP[SEGMENT_ADVERTISING] = SEGMENT_COVER_ADVERTISING
-
-    logging.info("🚀 moode_sse_server v{__version__} started")
-
-    sse_thread = Thread(target=start_sse_server, daemon=True)
+    task_queue = Queue()
+    
+    worker = BackgroundWorker(task_queue)
+    worker.start()
+    
+    sse_thread = Thread(target=run_sse_server, daemon=True)
     sse_thread.start()
-
+    
     health_thread = Thread(target=health_check_loop, daemon=True)
     health_thread.start()
-
-    watcher_thread = Thread(target=listen_events, daemon=True)
-    watcher_thread.start()
-
-    try:
-        while not _shutdown_event.is_set():
-            signal.pause()
-    except KeyboardInterrupt:
-        logging.info("[main] 🛑 Termination requested")
-        _shutdown_event.set()
-
-    logging.info("[main] Waiting for threads to finish...")
-    watcher_thread.join(timeout=5)
-    sse_thread.join(timeout=5)
-    health_thread.join(timeout=5)
-    logging.info("[main] Shutdown complete.")
+    
+    listen_events(task_queue)
+    
+if __name__ == "__main__":
+    main()
