@@ -13,7 +13,7 @@
 
 Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Events)**: il daemon ascolta MPD tramite `idle()` e si risveglia *solo* quando MPD segnala un cambio di traccia, rimanendo silenzioso il resto del tempo. Il frontend riceve la nuova cover in tempo reale via push, senza polling continuo e senza latenza artificiale.
 
-✅ **Testato e verificato su moOde Audio Player v10.2.2**
+✅ **Testato e verificato su moOde Audio Player v10.2.4**
 
 | Web UI (Browser) | Local Display (Kiosk) |
 | :---: | :---: |
@@ -21,7 +21,7 @@ Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Event
 
 ### Come funziona
 
-#### 1. Noise Gate a three livelli
+#### 1. Noise Gate a tre livelli
 
 Prima ancora di avviare una ricerca, il daemon analizza il metadata ricevuto da MPD e decide se è un segnale valido o rumore da ignorare.
 
@@ -107,15 +107,16 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 10. Snippet JS — difesa lato frontend
+#### 10. Snippet JS — V9 (Native jQuery DOM)
 
-Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni:
+Lo snippet JS iniettato in `lib.min.js` usa il pattern nativo di moOde (`$.html()`) per aggiornare le copertine, senza CSS override. Questo garantisce compatibilità hardware totale con il driver grafico VC4 del Raspberry Pi 4.
 
-- **Layer 1** — intercetta `$.fn.html` di jQuery e blocca qualsiasi scrittura sui div cover quando SSE è attivo
-- **Layer 2** — MutationObserver su `img.src`: ripristina immediatamente l'URL SSE se moOde tenta di sovrascriverlo
-- **Layer 3** — property hijack su `MPD.json.coverurl`: forza il valore SSE ad ogni ciclo di polling moOde
+- **Idempotenza** — se arriva lo stesso URL, viene ignorato
+- **Preload** — l'immagine viene precaricata prima di toccare il DOM
+- **Resilienza di rete** — `onerror` silenzioso, la copertina rimane a schermo
+- **MutationObserver** — cede il controllo a moOde durante lo zapping NAS
 
-**Zero-Black-Flash Transitions**: Abbiamo lavorato approfonditamente sulle transizioni grafiche per i cambi di sorgente (da NAS a NAS, da NAS a Radio e da Radio a NAS). Lo snippet JS è progettato per sovrascrivere il comportamento nativo di moOde, mantenendo la copertina precedente visibile in background fino al completo caricamento in memoria della nuova immagine. Questo approccio ci permette di azzerare (o ridurre al minimo assoluto in caso estremo di latenza di rete) il fastidioso effetto "schermo nero" durante i cambi traccia.
+> **Nota:** La breve transizione nera tra copertine è comportamento nativo di moOde e non viene modificata. I tentativi precedenti di eliminarla via CSS erano la causa principale dei crash del driver grafico.
 
 #### 11. Badge MR+ — indicatore visivo con toggle on/off
 
@@ -207,7 +208,7 @@ sudo chown moode:moode /var/www/js/lib.min.js
 
 ### Autori e Ringraziamenti
 
-- **Ivo Scagliola** — co-auteur, progettazione, sviluppo e testing finale
+- **Ivo Scagliola** — co-autore, progettazione, sviluppo e testing finale
 - **Marco Mosca** — co-autore, progettazione, sviluppo e testing
 
 Un ringraziamento speciale alla gatta **Calzina**, per la costante compagnia (e i test di pazienza sulla tastiera) durante le sessioni di sviluppo di questo progetto.
@@ -230,7 +231,7 @@ MIT License
 
 The plugin adopts an **event-driven architecture based on SSE (Server-Sent Events)**: the daemon listens to MPD via `idle()` and wakes up *only* when MPD signals a track change, remaining silent the rest of the time. The frontend receives the new cover in real time via push, without continuous polling and without artificial latency.
 
-✅ **Tested and verified on moOde Audio Player v10.2.2**
+✅ **Tested and verified on moOde Audio Player v10.2.4**
 
 | Web UI (Browser) | Local Display (Kiosk) |
 | :---: | :---: |
@@ -324,15 +325,16 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 10. JS Snippet — Frontend Defence
+#### 10. JS Snippet — V9 (Native jQuery DOM)
 
-The JS snippet injected into `lib.min.js` protects the SSE cover from three directions:
+The JS snippet injected into `lib.min.js` uses moOde's native pattern (`$.html()`) to update covers, without CSS overrides. This ensures full hardware compatibility with the Raspberry Pi 4 VC4 graphics driver.
 
-- **Layer 1** — intercepts jQuery's `$.fn.html` and blocks any write to cover divs when SSE is active
-- **Layer 2** — MutationObserver on `img.src`: immediately restores the SSE URL if moOde attempts to overwrite it
-- **Layer 3** — property hijack on `MPD.json.coverurl`: forces the SSE value on every moOde polling cycle
+- **Idempotency** — duplicate URLs are ignored
+- **Preload** — image is preloaded before touching the DOM
+- **Network resilience** — silent `onerror`, cover stays on screen during reconnection
+- **MutationObserver** — yields control to moOde during NAS track zapping
 
-**Zero-Black-Flash Transitions**: We have worked extensively on graphic transitions for source changes (NAS to NAS, NAS to Radio, and Radio to NAS). The JS snippet is designed to override moOde's native behaviour, keeping the previous cover visible in the background until the new image is fully loaded into memory. This approach allows us to eliminate (or reduce to an absolute minimum in extreme cases of network latency) the annoying "black screen" flash during track changes.
+> **Note:** The brief black transition between covers is native moOde behaviour and is intentionally preserved. Previous attempts to eliminate it via CSS were the primary cause of GPU driver crashes.
 
 #### 11. MR+ Badge — Visual Indicator with On/Off Toggle
 
