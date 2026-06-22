@@ -62,8 +62,8 @@ chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 # lib.min.js — backup + append snippet con sudo tee
 echo "  Backup lib.min.js..."
 sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-echo "  Iniezione snippet V7.11 in lib.min.js..."
-curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.11.js" | sudo tee -a "$JS_TARGET" > /dev/null
+echo "  Iniezione snippet V9 in lib.min.js..."
+curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v9.js" | sudo tee -a "$JS_TARGET" > /dev/null
 echo "  Snippet iniettato."
 
 # — NGINX PROXY SSE ——————————————————
@@ -114,7 +114,7 @@ echo "============================================="
 echo "  Installazione completata."
 echo ""
 echo "  IMPORTANTE: Inserisci le API keys in:"
-echo "    $INSTALL_DIR/moode_sse_server.config"
+    echo "    $INSTALL_DIR/moode_sse_server.config"
 echo ""
 echo "  Poi riavvia il daemon:"
 echo "    sudo systemctl restart moode-sse"
