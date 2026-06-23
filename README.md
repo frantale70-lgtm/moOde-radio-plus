@@ -107,16 +107,17 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 10. Snippet JS — V9 (Native jQuery DOM)
+#### 10. Snippet JS V7.11 — Difesa attiva lato frontend
 
-Lo snippet JS iniettato in `lib.min.js` usa il pattern nativo di moOde (`$.html()`) per aggiornare le copertine, senza CSS override. Questo garantisce compatibilità hardware totale con il driver grafico VC4 del Raspberry Pi 4.
+Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni simultanee:
 
-- **Idempotenza** — se arriva lo stesso URL, viene ignorato
-- **Preload** — l'immagine viene precaricata prima di toccare il DOM
-- **Resilienza di rete** — `onerror` silenzioso, la copertina rimane a schermo
-- **MutationObserver** — cede il controllo a moOde durante lo zapping NAS
+- **Layer 1** — intercetta `$.fn.html` di jQuery e blocca qualsiasi scrittura sui div cover quando SSE è attivo
+- **Layer 2** — MutationObserver su `img.src`: ripristina immediatamente l'URL SSE se moOde tenta di sovrascriverlo con il logo della stazione
+- **Layer 3** — property hijack su `MPD.json.coverurl`: forza il valore SSE ad ogni ciclo di polling moOde
 
-> **Nota:** La breve transizione nera tra copertine è comportamento nativo di moOde e non viene modificata. I tentativi precedenti di eliminarla via CSS erano la causa principale dei crash del driver grafico.
+Questo approccio a tre livelli garantisce che la cover ad alta risoluzione rimanga sempre visibile indipendentemente da qualsiasi interazione dell'utente o re-render nativo di moOde. A differenza delle versioni precedenti che usavano CSS override (`content: url()`), lo snippet V7.11 opera esclusivamente tramite `img.src` diretto, garantendo **piena compatibilità con il driver grafico VC4 del Raspberry Pi 4** senza causare kernel panic.
+
+> **Stabilità verificata** — La V7.11 è stata sottoposta a stress test intensivi: ore di zapping continuo, interazione sulla copertina, cambio sorgente NAS/Radio, tutto senza mai causare artefatti grafici, lag audio o crash del Kiosk.
 
 #### 11. Badge MR+ — indicatore visivo con toggle on/off
 
@@ -325,16 +326,17 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
   <img src="docs/log-health-check.jpg" alt="Daemon Health Check Logs" width="600">
 </p>
 
-#### 10. JS Snippet — V9 (Native jQuery DOM)
+#### 10. JS Snippet V7.11 — Active Frontend Defence
 
-The JS snippet injected into `lib.min.js` uses moOde's native pattern (`$.html()`) to update covers, without CSS overrides. This ensures full hardware compatibility with the Raspberry Pi 4 VC4 graphics driver.
+The JS snippet injected into `lib.min.js` protects the SSE cover from three simultaneous directions:
 
-- **Idempotency** — duplicate URLs are ignored
-- **Preload** — image is preloaded before touching the DOM
-- **Network resilience** — silent `onerror`, cover stays on screen during reconnection
-- **MutationObserver** — yields control to moOde during NAS track zapping
+- **Layer 1** — intercepts jQuery's `$.fn.html` and blocks any write to cover divs when SSE is active
+- **Layer 2** — MutationObserver on `img.src`: immediately restores the SSE URL if moOde attempts to overwrite it with the station logo
+- **Layer 3** — property hijack on `MPD.json.coverurl`: forces the SSE value on every moOde polling cycle
 
-> **Note:** The brief black transition between covers is native moOde behaviour and is intentionally preserved. Previous attempts to eliminate it via CSS were the primary cause of GPU driver crashes.
+This three-layer approach ensures that the high-resolution cover remains always visible regardless of any user interaction or native moOde re-render. Unlike previous versions that used CSS overrides (`content: url()`), the V7.11 snippet operates exclusively via direct `img.src`, ensuring **full compatibility with the Raspberry Pi 4 VC4 graphics driver** without causing kernel panics.
+
+> **Verified stability** — V7.11 has undergone intensive stress testing: hours of continuous zapping, cover interaction, NAS/Radio source switching — all without ever causing graphical artefacts, audio lag, or Kiosk crashes.
 
 #### 11. MR+ Badge — Visual Indicator with On/Off Toggle
 
