@@ -60,11 +60,15 @@ curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
 chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 
 # lib.min.js — backup + append snippet con sudo tee
-echo "  Backup lib.min.js..."
-sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-echo "  Iniezione snippet V7.11 in lib.min.js..."
-curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.11.js" | sudo tee -a "$JS_TARGET" > /dev/null
-echo "  Snippet iniettato."
+if grep -q "moode-sse-patch" "$JS_TARGET" 2>/dev/null; then
+    echo "  Snippet già presente in lib.min.js, skip iniezione."
+else
+    echo "  Backup lib.min.js..."
+    sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
+    echo "  Iniezione snippet V7.11 in lib.min.js..."
+    curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.11.js" | sudo tee -a "$JS_TARGET" > /dev/null
+    echo "  Snippet iniettato."
+fi
 
 # — NGINX PROXY SSE ——————————————————
 echo "[5/7] Configurazione Nginx proxy SSE..."
