@@ -33,7 +33,7 @@ echo "  Servizio rimosso."
 # — 2. RIPRISTINO lib.min.js ———————————
 echo "[2/5] Ripristino lib.min.js..."
 
-BACKUP=$(ls -t "${JS_TARGET}.bk."* 2>/dev/null | head -1)
+BACKUP=$(ls -tr "${JS_TARGET}.bk."* 2>/dev/null | head -1)
 
 if [ -n "$BACKUP" ]; then
     echo "  Ripristino da backup: $BACKUP"
@@ -42,8 +42,7 @@ if [ -n "$BACKUP" ]; then
     echo "  lib.min.js ripristinato dal backup."
 else
     echo "  Nessun backup trovato. Rimozione snippet tramite marcatore..."
-    MARKER="/* moode-sse-patch"
-    LINE=$(grep -n "$MARKER" "$JS_TARGET" 2>/dev/null | tail -1 | cut -d: -f1)
+    LINE=$(grep -n "moode-sse-patch" "$JS_TARGET" 2>/dev/null | head -1 | cut -d: -f1)
     if [ -n "$LINE" ]; then
         sudo head -n $((LINE - 1)) "$JS_TARGET" > /tmp/_lib_min_tmp.js
         sudo mv /tmp/_lib_min_tmp.js "$JS_TARGET"
@@ -60,7 +59,7 @@ echo "  Permessi ripristinati."
 
 # — 3. RIPRISTINO NGINX ————————————————
 echo "[3/5] Ripristino configurazione Nginx..."
-NGINX_BACKUP=$(ls -t "${NGINX_SITE}.bk."* 2>/dev/null | head -1)
+NGINX_BACKUP=$(ls -tr "${NGINX_SITE}.bk."* 2>/dev/null | head -1)
 
 if [ -n "$NGINX_BACKUP" ]; then
     echo "  Ripristino Nginx da backup: $NGINX_BACKUP"
