@@ -109,7 +109,9 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
 
 #### 10. Snippet JS V7.11 — Difesa attiva lato frontend
 
-Lo snippet JS iniettato in `lib.min.js` protegge la cover SSE da tre direzioni simultanee:
+Lo snippet JS `moode_radio_plus_snippet.js` viene copiato in `/var/www/js/` e caricato tramite un tag `<script>` iniettato in `header.php`. Questo approccio è **chirurgico e non invasivo**: non tocca nessun file minificato di sistema come `lib.min.js`, sopravvive agli aggiornamenti di moOde e si rimuove con un singolo comando.
+
+A runtime, lo snippet protegge la cover SSE da tre direzioni simultanee:
 
 - **Layer 1** — intercetta `$.fn.html` di jQuery e blocca qualsiasi scrittura sui div cover quando SSE è attivo
 - **Layer 2** — MutationObserver su `img.src`: ripristina immediatamente l'URL SSE se moOde tenta di sovrascriverlo con il logo della stazione
@@ -205,8 +207,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 775 /var/www/js/lib.min.js
-sudo chown $USER:$USER /var/www/js/lib.min.js
+sudo chmod 644 /var/www/js/moode_radio_plus_snippet.js
+sudo chown root:root /var/www/js/moode_radio_plus_snippet.js
 ```
 
 ### Autori e Ringraziamenti
@@ -330,7 +332,9 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
 
 #### 10. JS Snippet V7.11 — Active Frontend Defence
 
-The JS snippet injected into `lib.min.js` protects the SSE cover from three simultaneous directions:
+The JS snippet `moode_radio_plus_snippet.js` is copied to `/var/www/js/` and loaded via a `<script>` tag injected into `header.php`. This approach is **surgical and non-invasive**: it does not touch any minified system file like `lib.min.js`, survives moOde updates, and is removed with a single command.
+
+At runtime, the snippet protects the SSE cover from three simultaneous directions:
 
 - **Layer 1** — intercepts jQuery's `$.fn.html` and blocks any write to cover divs when SSE is active
 - **Layer 2** — MutationObserver on `img.src`: immediately restores the SSE URL if moOde attempts to overwrite it with the station logo
@@ -426,8 +430,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 775 /var/www/js/lib.min.js
-sudo chown $USER:$USER /var/www/js/lib.min.js
+sudo chmod 644 /var/www/js/moode_radio_plus_snippet.js
+sudo chown root:root /var/www/js/moode_radio_plus_snippet.js
 ```
 
 ### Authors and Acknowledgements
