@@ -55,10 +55,15 @@ curl -fsSL "$REPO_RAW/plugin/moode_sse_server.py" \
     -o "$INSTALL_DIR/moode_sse_server.py"
 chmod 755 "$INSTALL_DIR/moode_sse_server.py"
 
-# Config
-curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
-    -o "$INSTALL_DIR/moode_sse_server.config"
-chmod 755 "$INSTALL_DIR/moode_sse_server.config"
+# Config — preservato se già esistente (mantiene le API keys)
+if [ -f "$INSTALL_DIR/moode_sse_server.config" ]; then
+    echo "  Config già presente con API keys — mantenuto invariato."
+else
+    curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
+        -o "$INSTALL_DIR/moode_sse_server.config"
+    chmod 755 "$INSTALL_DIR/moode_sse_server.config"
+    echo "  Config scaricato. Ricordati di inserire le API keys al termine."
+fi
 
 # — SNIPPET JS + INIEZIONE header.php ————————
 echo "[5/7] Installazione snippet JS..."
