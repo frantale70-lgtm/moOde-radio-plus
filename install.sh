@@ -9,7 +9,9 @@ set -e
 
 REPO_RAW="https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main"
 INSTALL_DIR="/opt/moOde_Radio_Cover"
-JS_TARGET="/var/www/js/lib.min.js"
+JS_FILE="moode_radio_plus_snippet.js"
+JS_DEST="/var/www/js/$JS_FILE"
+HEADER_PHP="/var/www/header.php"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
 LOGOS_DIR="/var/local/www/imagesw/radio-logos"
@@ -44,9 +46,6 @@ sudo chown root:www-data "$LOG_FILE"
 sudo chmod 664 "$LOG_FILE"
 sudo chown root:www-data "$LOGOS_DIR"
 sudo chmod 755 "$LOGOS_DIR"
-# Rendi lib.min.js scrivibile per l'iniezione dello snippet
-sudo chown root:www-data "$JS_TARGET"
-sudo chmod 664 "$JS_TARGET"
 
 # — DOWNLOAD FILE ————————————————————
 echo "[4/7] Download file dal repository..."
@@ -61,25 +60,67 @@ curl -fsSL "$REPO_RAW/plugin/moode_sse_server.config" \
     -o "$INSTALL_DIR/moode_sse_server.config"
 chmod 755 "$INSTALL_DIR/moode_sse_server.config"
 
-# lib.min.js — backup + append snippet con sudo tee
-if grep -q "moode-sse-patch" "$JS_TARGET" 2>/dev/null; then
-    echo "  Snippet già presente in lib.min.js, skip iniezione."
-else
-    echo "  Backup lib.min.js..."
-    sudo cp "$JS_TARGET" "${JS_TARGET}.bk.$(date +%Y%m%d_%H%M%S)"
-    echo "  Iniezione snippet V7.11 in lib.min.js..."
-    curl -fsSL "$REPO_RAW/plugin/moode_sse_snippet_v7.11.js" | sudo tee -a "$JS_TARGET" > /dev/null
-    echo "  Snippet iniettato."
+# — SNIPPET JS + INIEZIONE header.php ————————
+echo "[5/7] Installazione snippet JS..."
+
+# Download snippet in /var/www/js/
+sudo curl -fsSL "$REPO_RAW/plugin/$JS_FILE" -o "$JS_DEST"
+sudo chown root:root "$JS_DEST"
+sudo chmod 644 "$JS_DEST"
+echo "  Snippet JS copiato in $JS_DEST"
+
+# Backup header.php (solo la prima volta)
+if [ ! -f "${HEADER_PHP}.bak.original" ]; then
+    sudo cp "$HEADER_PHP" "${HEADER_PHP}.bak.original"
+    echo "  Backup originale header.php creato."
+fi
+sudo cp "$HEADER_PHP" "${HEADER_PHP}.bak.$(date +%Y%m%d_%H%M%S)"
+
+# Iniezione tag <script> via Python
+sudo python3 - <<PYEOF
+import re, time
+
+target = '/var/www/header.php'
+js_file = 'moode_radio_plus_snippet.js'
+script_line = '<script src="js/{}?v={}"></script>'.format(js_file, int(time.time()))
+
+with open(target, 'r') as f:
+    content = f.read()
+
+if js_file in content:
+    print('  Snippet gia presente in header.php. Aggiornamento timestamp...')
+    content = re.sub(
+        r'<script src="js/' + js_file + r'\?v=\d+"></script>',
+        script_line,
+        content
+    )
+else:
+    print('  Inserimento tag script in header.php...')
+    if '</head>' in content:
+        content = content.replace('</head>', '    ' + script_line + '\n</head>')
+    else:
+        print('ERRORE: Tag </head> non trovato in header.php!')
+        exit(1)
+
+with open(target, 'w') as f:
+    f.write(content)
+
+print('  Tag script iniettato con successo.')
+PYEOF
+
+RET=$?
+if [ $RET -ne 0 ]; then
+    echo "  ERRORE nell'iniezione Python. Ripristino backup..."
+    sudo cp "${HEADER_PHP}.bak.original" "$HEADER_PHP"
+    exit 1
 fi
 
 # — NGINX PROXY SSE ——————————————————
-echo "[5/7] Configurazione Nginx proxy SSE..."
+echo "[6/7] Configurazione Nginx proxy SSE..."
 if grep -q "cover-events" "$NGINX_SITE" 2>/dev/null; then
-    echo "  Nginx già configurato per /cover-events, skip."
+    echo "  Nginx gia configurato per /cover-events, skip."
 else
-    # Backup Nginx config
     sudo cp "$NGINX_SITE" "${NGINX_SITE}.bk.$(date +%Y%m%d_%H%M%S)"
-    # Inserisce il blocco location prima di "include moode-locations.conf;"
     sudo sed -i 's|include moode-locations.conf;|location /cover-events {\n\t\tproxy_pass http://127.0.0.1:5000;\n\t\tproxy_http_version 1.1;\n\t\tproxy_set_header Connection "";\n\t\tproxy_buffering off;\n\t}\n\tinclude moode-locations.conf;|' "$NGINX_SITE"
     if sudo nginx -t 2>/dev/null; then
         sudo nginx -s reload
@@ -93,7 +134,7 @@ else
 fi
 
 # — SERVIZIO SYSTEMD —————————————————
-echo "[6/7] Installazione servizio systemd..."
+echo "[7/7] Installazione servizio systemd..."
 sudo curl -fsSL "$REPO_RAW/plugin/moode-sse.service" \
     -o "$SERVICE_FILE"
 sudo chown root:root "$SERVICE_FILE"
@@ -103,7 +144,6 @@ sudo systemctl enable moode-sse.service
 sudo systemctl restart moode-sse.service
 
 # — VERIFICA —————————————————————
-echo "[7/7] Verifica servizio..."
 sleep 2
 if systemctl is-active --quiet moode-sse.service; then
     echo ""
