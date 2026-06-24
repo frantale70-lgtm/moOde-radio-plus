@@ -86,6 +86,14 @@ fi
 # — 5. RIMOZIONE DIRECTORY E LOG —————————
 echo "[5/5] Rimozione directory e log..."
 if [ -d "$INSTALL_DIR" ]; then
+    CONFIG_FILE="$INSTALL_DIR/moode_sse_server.config"
+    if [ -f "$CONFIG_FILE" ]; then
+        read -p "  Conservare il file config con le API keys? [S/n] " keep_config
+        if [[ ! "$keep_config" =~ ^[Nn]$ ]]; then
+            sudo cp "$CONFIG_FILE" ~/moode_sse_server.config.saved
+            echo "  Config salvato in ~/moode_sse_server.config.saved"
+        fi
+    fi
     sudo rm -rf "$INSTALL_DIR"
     echo "  Directory $INSTALL_DIR rimossa."
 else
