@@ -155,6 +155,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-
 
 > 💡 **Smart Install**: lo script rileva e si adatta automaticamente all'utente di sistema (es. `pi` o `moode`), garantendo un'installazione perfetta indipendentemente dalla configurazione del vostro Raspberry Pi.
 
+> 🔑 **Config preservato**: in caso di reinstallazione, il file di configurazione con le API keys non viene sovrascritto — le chiavi vengono mantenute automaticamente.
+
 Al termine inserire le API keys nel file di configurazione:
 
 ```
@@ -377,6 +379,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-
 ```
 
 > 💡 **Smart Install**: the script automatically detects and adapts to the current system user (e.g. `pi` or `moode`), ensuring a flawless installation regardless of your Raspberry Pi configuration.
+
+> 🔑 **Config preserved**: on reinstall, the configuration file with API keys is not overwritten — your keys are kept automatically.
 
 After installation, insert your API keys in the configuration file:
 
