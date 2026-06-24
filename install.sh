@@ -36,7 +36,9 @@ sudo touch "$LOG_FILE"
 
 # — PERMESSI —————————————————————
 echo "[3/7] Assegnazione permessi..."
-sudo chown moode:moode "$INSTALL_DIR"
+CURRENT_USER=$(whoami)
+CURRENT_GROUP=$(id -gn)
+sudo chown $CURRENT_USER:$CURRENT_GROUP "$INSTALL_DIR"
 sudo chmod 755 "$INSTALL_DIR"
 sudo chown root:www-data "$LOG_FILE"
 sudo chmod 664 "$LOG_FILE"
@@ -124,6 +126,6 @@ echo "  Poi riavvia il daemon:"
 echo "    sudo systemctl restart moode-sse"
 echo ""
 echo "  Svuota cache kiosk:"
-echo "    rm -rf /home/moode/.cache/chromium"
+echo "    rm -rf /home/$USER/.cache/chromium"
 echo "    sudo systemctl restart localdisplay.service"
 echo "============================================="
