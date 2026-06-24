@@ -166,7 +166,7 @@ sudo systemctl restart moode-sse
 Svuotare la cache del kiosk:
 
 ```bash
-rm -rf /home/moode/.cache/chromium
+rm -rf /home/$USER/.cache/chromium
 sudo systemctl restart localdisplay.service
 ```
 
@@ -201,10 +201,10 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 
 **Daemon e snippet** (per sviluppatori e contributor):
 ```bash
-sudo chown moode:moode /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /var/www/js/lib.min.js
-sudo chown moode:moode /var/www/js/lib.min.js
+sudo chown $USER:$USER /var/www/js/lib.min.js
 ```
 
 ### Autori e Ringraziamenti
@@ -385,7 +385,7 @@ sudo systemctl restart moode-sse
 Clear the kiosk cache:
 
 ```bash
-rm -rf /home/moode/.cache/chromium
+rm -rf /home/$USER/.cache/chromium
 sudo systemctl restart localdisplay.service
 ```
 
@@ -420,10 +420,10 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 
 **Daemon and snippet** (for developers and contributors):
 ```bash
-sudo chown moode:moode /opt/moOde_Radio_Cover/moode_sse_server.py
+sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /var/www/js/lib.min.js
-sudo chown moode:moode /var/www/js/lib.min.js
+sudo chown $USER:$USER /var/www/js/lib.min.js
 ```
 
 ### Authors and Acknowledgements
