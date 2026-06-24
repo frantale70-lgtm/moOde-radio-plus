@@ -151,6 +151,8 @@ In moOde: **Preferences → Cover Art → Radio track covers = No**
 bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/install.sh)
 ```
 
+> 💡 **Smart Install**: lo script rileva e si adatta automaticamente all'utente di sistema (es. `pi` o `moode`), garantendo un'installazione perfetta indipendentemente dalla configurazione del vostro Raspberry Pi.
+
 Al termine inserire le API keys nel file di configurazione:
 
 ```
@@ -369,6 +371,8 @@ In moOde: **Preferences → Cover Art → Radio track covers = No**
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/install.sh)
 ```
+
+> 💡 **Smart Install**: the script automatically detects and adapts to the current system user (e.g. `pi` or `moode`), ensuring a flawless installation regardless of your Raspberry Pi configuration.
 
 After installation, insert your API keys in the configuration file:
 
