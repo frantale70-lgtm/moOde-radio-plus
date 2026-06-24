@@ -81,21 +81,21 @@ if [ ! -f "${HEADER_PHP}.bak.original" ]; then
 fi
 sudo cp "$HEADER_PHP" "${HEADER_PHP}.bak.$(date +%Y%m%d_%H%M%S)"
 
-# Iniezione tag <script> via Python
+# Iniezione tag <script defer> via Python
 sudo python3 - <<PYEOF
 import re, time
 
 target = '/var/www/header.php'
 js_file = 'moode_radio_plus_snippet.js'
-script_line = '<script src="js/{}?v={}"></script>'.format(js_file, int(time.time()))
+script_line = '<script src="js/{}?v={}" defer></script>'.format(js_file, int(time.time()))
 
 with open(target, 'r') as f:
     content = f.read()
 
 if js_file in content:
-    print('  Snippet gia presente in header.php. Aggiornamento timestamp...')
+    print('  Snippet gia presente in header.php. Aggiornamento...')
     content = re.sub(
-        r'<script src="js/' + js_file + r'\?v=\d+"></script>',
+        r'<script src="js/' + js_file + r'\?v=\d+"( defer)?></script>',
         script_line,
         content
     )
