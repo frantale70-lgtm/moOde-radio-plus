@@ -1,4 +1,11 @@
 #!/bin/bash
+# ============================================================
+#  moOde-radio-plus — Reverse Install (Emergency Fallback)
+#  Repo: https://github.com/frantale70-lgtm/moOde-radio-plus
+# ============================================================
+
+REPO_RAW="https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main"
+
 echo "============================================="
 echo "   REVERSE INSTALL - FALLBACK DI EMERGENZA"
 echo "============================================="
@@ -15,22 +22,15 @@ fi
 
 echo ""
 echo "[FASE 1] Disinstallazione versione corrente..."
-if [ -f "./uninstall.sh" ]; then
-    bash ./uninstall.sh
-else
-    echo "Nessun uninstall.sh trovato nella root. Skippato."
-fi
+bash <(curl -fsSL "$REPO_RAW/uninstall.sh") || true
 
 echo ""
 echo "[FASE 2] Installazione versione di emergenza..."
-cd obsolete/v7.11_lib_min_injection
-if [ -f "./install.sh" ]; then
-    bash ./install.sh
-else
-    echo "ERRORE: install.sh di emergenza non trovato!"
+bash <(curl -fsSL "$REPO_RAW/obsolete/v7.11_lib_min_injection/install.sh")
+if [ $? -ne 0 ]; then
+    echo "ERRORE: install.sh di emergenza fallito!"
     exit 1
 fi
-cd ../..
 
 echo ""
 echo "============================================="
