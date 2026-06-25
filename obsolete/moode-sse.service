@@ -1,0 +1,16 @@
+[Unit]
+Description=moOde Radio Plus — Cover Art SSE Daemon
+After=network.target mpd.service
+Wants=mpd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/moOde_Radio_Cover/moode_sse_server.py
+WorkingDirectory=/opt/moOde_Radio_Cover
+Restart=on-failure
+RestartSec=5
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target
