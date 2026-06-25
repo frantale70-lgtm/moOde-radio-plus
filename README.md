@@ -1,19 +1,24 @@
+<div align="center">
+  <img src="docs/cover-logo.jpg" alt="moOde-radio-plus Logo" width="300">
+</div>
+
 # moOde-radio-plus
 
-> **Intelligent radio cover art engine for moOde Audio Player**  
-> **Motore intelligente di ricerca cover art radio per moOde Audio Player**
-
----
+<p align="center">
+  <img src="https://img.shields.io/badge/moOde_Audio-v10.2.4-blue.svg" alt="moOde Version">
+  <img src="https://img.shields.io/badge/Python-3.x-yellow.svg" alt="Python Version">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+</p>
 
 ## 🇮🇹 Italiano
 
 ### Introduzione
 
-**moOde-radio-plus** nasce come estensione complementare a moOde Audio Player, con l'intento di aggiungere funzionalità che portino la ricerca delle cover art radio a un livello più esteso e articolato, riducendo il rumore generato dai metadata ICY delle stazioni e aumentando la precisione del risultato.
+**moOde-radio-plus** nasce come estensione complementare per moOde Audio Player, con l'obiettivo di portare la ricerca delle copertine radio (Radio Cover Art) a un livello superiore. L'obiettivo primario è **ridurre drasticamente il "rumore"** generato dai metadata ICY spesso "sporchi" o promozionali trasmessi dalle stazioni radio, aumentando al contempo l'accuratezza e la velocità dei risultati.
 
-Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Events)**: il daemon ascolta MPD tramite `idle()` e si risveglia *solo* quando MPD segnala un cambio di traccia, rimanendo silenzioso il resto del tempo. Il frontend riceve la nuova cover in tempo reale via push, senza polling continuo e senza latenza artificiale.
+Il plugin adotta un'**architettura event-driven basata su SSE (Server-Sent Events)**: il daemon si interfaccia con MPD (Music Player Daemon) mettendosi in ascolto tramite il comando `idle()`. Questo significa che il sistema si "sveglia" *solo* ed esclusivamente nel momento in cui MPD segnala un effettivo cambio di traccia, rimanendo silente e a consumo zero per il resto del tempo. La nuova copertina trovata viene inviata in tempo reale al frontend tramite una connessione push, eliminando la necessità di continui polling dal browser e riducendo a zero la latenza percepita.
 
-✅ **Testato e verificato su moOde Audio Player v10.2.4**
+✅ **Testato e verificato su moOde Audio Player v10.2.4 (Raspberry Pi 4 / Driver VC4)**
 
 | Web UI (Browser) | Local Display (Kiosk) |
 | :---: | :---: |
@@ -21,62 +26,52 @@ Il plugin adotta un'architettura **event-driven basata su SSE (Server-Sent Event
 
 ### Come funziona
 
-#### 1. Noise Gate a tre livelli
+#### 1. Noise Gate a Tre Livelli
 
-Prima ancora di avviare una ricerca, il daemon analizza il metadata ricevuto da MPD e decide se è un segnale valido o rumore da ignorare.
+Il cuore del plugin è un filtro (*noise gate*) che scarta i falsi positivi prima ancora di effettuare la ricerca:
+- **Scansione segmenti**: Riconosce jingle, giornali radio, meteo, traffico e pubblicità (es. `ADBREAK`, `News`).
+- **Scansione pattern**: Filtra schemi classici dei metadata sporchi (es. `Artista - 2024`).
+- **Soglia di similarità (Vacuum gate)**: Se il titolo trasmesso è troppo simile al nome stesso della stazione radio, viene scartato per evitare cover casuali.
 
-- **Vacuum gate** — titolo assente, troppo corto o uguale al nome stazione → scartato
-- **Segment gate** — riconosce keyword multilingua per news, meteo, traffico e pubblicità → mostra la cover di segmento dedicata invece di cercare una cover inesistente
-- **Similarity gate** — titolo troppo simile al nome stazione (fuzzy match ≥ 60%) → scartato
-- **Pattern gate** — riconosce pattern di rumore specifici: `~~~`, `AD`, `ADBREAK_END`, `jingle`, `promo`, `stationid`, titoli con anno stile `NomeStazione - 2025`
+#### 2. Normalizzazione Aggressiva del Testo
 
-#### 2. Pulizia metadata a due stadi
+Se il brano supera il noise gate, passa attraverso due tentativi di pulizia del testo:
+- **Tentativo 1 (Light)**: Rimuove i `feat.`, `with`, `voc.` e caratteri spuri. Se non trova nulla...
+- **Tentativo 2 (Aggressive)**: Rimuove stringhe url (es. `.com`, `www.`), tag come `(Original Mix)`, `(Remix)` e applica euristiche avanzate per estrarre solo il nome puro dell'artista e del brano.
 
-Il metadata ICY trasmesso dalle stazioni radio è spesso sporco: URL di stazione nel campo artista, featuring, caratteri speciali, prefissi. Il daemon lo pulisce prima di interrogare i provider.
+#### 3. Ricerca Parallela Multithread
 
-- **Attempt 1** — pulizia leggera: rimuove `feat.`, `ft.`, `featuring`, `with` dal titolo. Ricerca rapida.
-- **Attempt 2** — pulizia aggressiva: `clean_artist_name()` rimuove URL, suffissi `.com/.fm`, prefissi stazione, remix/compilation dal campo artista. `normalize_title()` rimuove parentesi, slash, caratteri speciali, prefissi `Artista - ` duplicati.
+La ricerca non viene effettuata su un singolo database, ma contemporaneamente su 7 provider differenti tramite un `ThreadPoolExecutor`:
+- Spotify
+- Deezer
+- iTunes
+- MusicBrainz
+- LastFM
+- Discogs
+- TheAudioDB
 
-#### 3. Ricerca parallela su 7 provider
+#### 4. Algoritmo di Punteggio Deterministico
 
-I provider vengono interrogati **simultaneamente** tramite `ThreadPoolExecutor`. Non in sequenza — in parallelo. Ogni provider risponde nei tempi che riesce, il sistema raccoglie i risultati e li valuta.
+Il primo risultato che arriva non è necessariamente quello che viene scelto. Tutti i risultati trovati nel tempo prestabilito vengono inseriti in un algoritmo di *weighted scoring* (punteggio pesato).
 
-Provider supportati: **iTunes, Deezer, LastFM, MusicBrainz, Discogs, TheAudioDB, Spotify**
+Il punteggio si basa su:
+- **Tipologia di release**: Un "Album" originale (peso 1.0) vince sempre su un "Singolo" (0.9), che a sua volta vince su una "Compilation" (0.4) o su un "Appears On" (0.5).
+- **Match titolo-album**: Se il titolo del brano coincide esattamente con il nome dell'album, riceve un moltiplicatore x1.5.
+- **Penalità Best Of**: Gli album "Greatest Hits" o "Vol. 1" vengono fortemente penalizzati (peso 0.4) per favorire le copertine degli album originali del brano.
 
-<p align="center">
-  <img src="docs/log-cover-found.jpg" alt="Daemon Parallel Search Logs" width="600">
-</p>
+#### 5. Dual Deadline + Early Stop
 
-#### 4. Scoring pesato per tipo di release
+- **Fast deadline (1.5s)** — se almeno un provider ha risposto entro 1.5s, il sistema usa il miglior risultato disponibile senza aspettare i ritardatari.
+- **Total deadline (2.5s)** — tempo limite assoluto di attesa.
+- **Early stop** — se il punteggio aggregato supera la soglia di 5.0, la ricerca si ferma immediatamente senza aspettare i provider più lenti.
 
-I risultati non vengono scelti per primo-arrivato. Ogni cover viene pesata in base al tipo di release dell'album trovato:
+#### 6. Selezione della Miglior Risoluzione
 
-| Tipo | Peso |
-|---|---|
-| Album | 1.0 |
-| Single | 0.9 |
-| Live | 0.8 |
-| EP | 0.7 |
-| Compilation | 0.4 |
-| Best of / Greatest Hits | 0.6 |
+A parità di album trovato su più provider, viene scelta la copertina con la risoluzione più alta tramite 3 passaggi progressivi: Analisi Regex → HTTP HEAD (Content-Length) → PIL streaming parziale (leggendo solo l'header dell'immagine).
 
-Bonus x1.5 se il titolo corrisponde esattamente al nome dell'album. Penalità se l'artista è già nel nome dell'album (segnale di compilation). Cover con "Vol." o "Volume" penalizzate.
+#### 7. Cover di Segmento
 
-I risultati di provider diversi vengono raggruppati per similarità del nome album (fuzzy ≥ 80%) — se iTunes e Deezer trovano lo stesso album, i loro voti si sommano.
-
-#### 5. Dual deadline + Early stop
-
-- **Fast deadline (1.5s)** — se almeno un provider ha risposto entro 1.5s, il sistema usa il miglior risultato disponibile senza aspettare gli altri
-- **Total deadline (2.5s)** — limite massimo assoluto
-- **Early stop** — se il punteggio aggregato supera 5.0, la ricerca si ferma immediatamente senza aspettare i provider lenti
-
-#### 6. Selezione della risoluzione migliore
-
-Tra le cover dello stesso album trovate da provider diversi, viene scelta quella con la risoluzione più alta tramite 3 pass progressivi: analisi URL → HTTP HEAD → streaming PIL.
-
-#### 7. Cover di segmento
-
-Durante lo streaming radiofonico, le emittenti trasmettono spesso metadati di servizio (es. `ADBREAK_END` o `Commercial` per la pubblicità). Il sistema nativo di moOde tenta di cercare questi testi come se fossero brani musicali, finendo per visualizzare copertine casuali, decontestualizzate o completamente errate (come nell'esempio del falso positivo a sinistra).
+Durante lo streaming radio, le emittenti trasmettono spesso metadata di servizio (es. `ADBREAK_END` o `Commercial` per la pubblicità). Il sistema nativo di moOde tenta di cercare questi testi come se fossero brani musicali, finendo per mostrare copertine casuali, decontestualizzate o completamente errate (come il falso positivo nell'esempio a sinistra).
 
 Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca errata e mostra invece una cover dedicata e coerente (a destra):
 
@@ -248,52 +243,42 @@ The plugin adopts an **event-driven architecture based on SSE (Server-Sent Event
 
 #### 1. Three-level Noise Gate
 
-Before starting any search, the daemon analyses the metadata received from MPD and decides whether it is a valid signal or noise to be ignored.
+The core of the plugin is a filter (*noise gate*) that discards false positives before even performing a search:
+- **Segment scanning**: Recognises jingles, news, weather, traffic and advertising (e.g. `ADBREAK`, `News`).
+- **Pattern scanning**: Filters classic patterns of dirty metadata (e.g. `Artist - 2024`).
+- **Similarity threshold (Vacuum gate)**: If the transmitted title is too similar to the radio station name itself, it is discarded to avoid random covers.
 
-- **Vacuum gate** — missing, too short, or equal to the station name → discarded
-- **Segment gate** — recognises multilingual keywords for news, weather, traffic and advertising → shows a dedicated segment cover instead of searching for a non-existent one
-- **Similarity gate** — title too similar to station name (fuzzy match ≥ 60%) → discarded
-- **Pattern gate** — recognises specific noise patterns: `~~~`, `AD`, `ADBREAK_END`, `jingle`, `promo`, `stationid`, titles with year pattern like `StationName - 2025`
+#### 2. Aggressive Text Normalisation
 
-#### 2. Two-stage Metadata Cleaning
+If the track passes the noise gate, it goes through two text cleaning attempts:
+- **Attempt 1 (Light)**: Removes `feat.`, `with`, `voc.` and spurious characters. If it finds nothing...
+- **Attempt 2 (Aggressive)**: Removes url strings (e.g. `.com`, `www.`), tags like `(Original Mix)`, `(Remix)` and applies advanced heuristics to extract only the pure name of the artist and the track.
 
-ICY metadata transmitted by radio stations is often dirty: station URLs in the artist field, featuring credits, special characters, prefixes. The daemon cleans it before querying providers.
+#### 3. Multithreaded Parallel Search
 
-- **Attempt 1** — light cleaning: removes `feat.`, `ft.`, `featuring`, `with` from the title. Fast search.
-- **Attempt 2** — aggressive cleaning: `clean_artist_name()` removes URLs, `.com/.fm` suffixes, station prefixes, remix/compilation labels from the artist field. `normalize_title()` removes brackets, slashes, special characters, duplicate `Artist - ` prefixes.
+The search is not performed on a single database, but simultaneously on 7 different providers via a `ThreadPoolExecutor`:
+- Spotify
+- Deezer
+- iTunes
+- MusicBrainz
+- LastFM
+- Discogs
+- TheAudioDB
 
-#### 3. Parallel Search across 7 Providers
+#### 4. Deterministic Scoring Algorithm
 
-Providers are queried **simultaneously** via `ThreadPoolExecutor`. Not in sequence — in parallel. Each provider responds in its own time, the system collects results and evaluates them.
+The first result that arrives is not necessarily the one chosen. All results found within the set time are fed into a *weighted scoring* algorithm.
 
-Supported providers: **iTunes, Deezer, LastFM, MusicBrainz, Discogs, TheAudioDB, Spotify**
-
-<p align="center">
-  <img src="docs/log-cover-found.jpg" alt="Daemon Parallel Search Logs" width="600">
-</p>
-
-#### 4. Weighted Scoring by Release Type
-
-Results are not chosen on a first-come basis. Each cover is weighted according to the release type of the album found:
-
-| Type | Weight |
-|---|---|
-| Album | 1.0 |
-| Single | 0.9 |
-| Live | 0.8 |
-| EP | 0.7 |
-| Compilation | 0.4 |
-| Best of / Greatest Hits | 0.6 |
-
-x1.5 bonus if the title exactly matches the album name. Penalty if the artist is already in the album name (compilation signal). Covers with "Vol." or "Volume" penalised.
-
-Results from different providers are grouped by album name similarity (fuzzy ≥ 80%) — if iTunes and Deezer find the same album, their votes are added together.
+The score is based on:
+- **Release type**: An original "Album" (weight 1.0) always beats a "Single" (0.9), which in turn beats a "Compilation" (0.4) or an "Appears On" (0.5).
+- **Title-album match**: If the track title exactly matches the album name, it receives a x1.5 multiplier.
+- **Best Of penalty**: "Greatest Hits" or "Vol. 1" albums are heavily penalised (weight 0.4) to favour covers of the track's original albums.
 
 #### 5. Dual Deadline + Early Stop
 
-- **Fast deadline (1.5s)** — if at least one provider has responded within 1.5s, the system uses the best available result without waiting for the others
-- **Total deadline (2.5s)** — absolute maximum limit
-- **Early stop** — if the aggregated score exceeds 5.0, the search stops immediately without waiting for slow providers
+- **Fast deadline (1.5s)** - if at least one provider has responded within 1.5s, the system uses the best available result without waiting for the others
+- **Total deadline (2.5s)** - absolute maximum limit
+- **Early stop** - if the aggregated score exceeds 5.0, the search stops immediately without waiting for slow providers
 
 #### 6. Best Resolution Selection
 
@@ -452,3 +437,21 @@ Special thanks to **Calzina** the cat, for her constant company (and keyboard-wa
 ### License
 
 MIT License
+
+
+## SOS Install Panic
+In caso di problemi con una nuova versione dell'installazione o un aggiornamento che rompe il sistema, è disponibile uno script di emergenza chiamato `reverse_install.sh`.
+Questo script (versione V7.11 sicura) esegue una disinstallazione completa della versione corrente e ripristina automaticamente l'ultimo ecosistema stabile testato (server, script e configurazioni) presente nella cartella `obsolete/v7.11_lib_min_injection/`.
+
+Per usarlo, esegui semplicemente:
+```bash
+bash reverse_install.sh
+```
+
+## Dietro le quinte: Architettura Isolamento V7.11
+
+1. **L'ambiente isolato (`obsolete/`)**: La capsula di salvataggio `v7.11_lib_min_injection` incapsula la versione più robusta testata per moOde.
+2. **Isolamento Stagno**: I file vitali (server, config, service e snippet JS) sono sigillati in questa cartella. L'`install.sh` di backup è stato hardcoded per pescare i file esclusivamente da questo ambiente locale isolato. 
+3. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e re-innesca in automatico l'installazione blindata della V7.11.
+
+> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su `header.php`) che dovesse rompere il display, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
