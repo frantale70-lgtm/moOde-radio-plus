@@ -8,9 +8,7 @@
 set -e
 
 INSTALL_DIR="/opt/moOde_Radio_Cover"
-JS_FILE="moode_radio_plus_snippet.js"
-JS_DEST="/var/www/js/$JS_FILE"
-HEADER_PHP="/var/www/header.php"
+LIB_MIN="/var/www/js/lib.min.js"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
 NGINX_SITE="/etc/nginx/sites-available/moode-http.conf"
@@ -24,7 +22,7 @@ echo ""
 read -p "  Confermi la disinstallazione? [s/N] " confirm
 [[ "$confirm" =~ ^[Ss]$ ]] || { echo "Disinstallazione annullata."; exit 0; }
 
-# — 1. STOP E RIMOZIONE SERVIZIO ——————————
+# — 1. STOP E RIMOZIONE SERVIZIO —
 echo "[1/5] Rimozione servizio systemd..."
 sudo systemctl stop moode-sse.service    2>/dev/null || true
 sudo systemctl disable moode-sse.service 2>/dev/null || true
@@ -32,37 +30,25 @@ sudo rm -f "$SERVICE_FILE"
 sudo systemctl daemon-reload
 echo "  Servizio rimosso."
 
-# — 2. RIMOZIONE SNIPPET DA header.php ——————
-echo "[2/5] Rimozione snippet da header.php..."
+# — 2. RIPRISTINO lib.min.js —
+echo "[2/5] Ripristino lib.min.js..."
+if [ -f "${LIB_MIN}.bak.original" ]; then
+    sudo cp "${LIB_MIN}.bak.original" "$LIB_MIN"
+    sudo rm -f "${LIB_MIN}.bak."*
+    echo "  lib.min.js ripristinato dal backup originale."
+else
+    echo "  ATTENZIONE: Backup originale non trovato."
+    if grep -q "moode-sse-patch" "$LIB_MIN" 2>/dev/null; then
+        echo "  Rimozione manuale dello snippet dal file..."
+        sudo sed -i '/moode-sse-patch/,$d' "$LIB_MIN"
+        echo "  Snippet rimosso."
+    else
+        echo "  Snippet non trovato in lib.min.js, skip."
+    fi
+fi
 
-sudo python3 - <<PYEOF
-import re
-
-target = '/var/www/header.php'
-js_file = 'moode_radio_plus_snippet.js'
-
-with open(target, 'r') as f:
-    content = f.read()
-
-if js_file in content:
-    content = re.sub(r'[ \t]*<script src="js/' + js_file + r'\?v=\d+"></script>\n?', '', content)
-    with open(target, 'w') as f:
-        f.write(content)
-    print('  Tag script rimosso da header.php.')
-else:
-    print('  Tag non trovato in header.php, skip.')
-PYEOF
-
-sudo rm -f "${HEADER_PHP}.bak."[0-9]*
-echo "  Backup datati rimossi. Il backup originale e conservato in ${HEADER_PHP}.bak.original"
-
-# — 3. RIMOZIONE FILE JS ———————————————
-echo "[3/5] Rimozione snippet JS..."
-sudo rm -f "$JS_DEST"
-echo "  $JS_DEST rimosso."
-
-# — 4. RIPRISTINO NGINX ————————————————
-echo "[4/5] Ripristino configurazione Nginx..."
+# — 3. RIPRISTINO NGINX —
+echo "[3/5] Ripristino configurazione Nginx..."
 NGINX_BACKUP=$(ls -tr "${NGINX_SITE}.bk."* 2>/dev/null | head -1)
 
 if [ -n "$NGINX_BACKUP" ]; then
@@ -83,15 +69,16 @@ else
     echo "  ATTENZIONE: test Nginx fallito. Verifica manuale necessaria."
 fi
 
-# — 5. RIMOZIONE DIRECTORY E LOG —————————
-echo "[5/5] Rimozione directory e log..."
+# — 4. RIMOZIONE DIRECTORY E LOG —
+echo "[4/5] Rimozione directory e log..."
 if [ -d "$INSTALL_DIR" ]; then
     CONFIG_FILE="$INSTALL_DIR/moode_sse_server.config"
     if [ -f "$CONFIG_FILE" ]; then
         read -p "  Conservare il file config con le API keys? [S/n] " keep_config
         if [[ ! "$keep_config" =~ ^[Nn]$ ]]; then
-            sudo cp "$CONFIG_FILE" ~/moode_sse_server.config.saved
-            echo "  Config salvato in ~/moode_sse_server.config.saved"
+            CURRENT_USER=$(whoami)
+            sudo cp "$CONFIG_FILE" /home/"$CURRENT_USER"/moode_sse_server.config.saved
+            echo "  Config salvato in /home/$CURRENT_USER/moode_sse_server.config.saved"
         fi
     fi
     sudo rm -rf "$INSTALL_DIR"
@@ -102,11 +89,15 @@ fi
 sudo rm -f "$LOG_FILE"
 echo "  Log rimosso."
 
+echo "[5/5] Svuotamento cache kiosk..."
+CURRENT_USER=$(whoami)
+sudo rm -rf /home/"$CURRENT_USER"/.cache/chromium 2>/dev/null || true
+echo "  Cache rimossa."
+
 echo ""
 echo "============================================="
 echo "  Disinstallazione completata."
 echo ""
-echo "  Svuota cache kiosk per applicare le modifiche:"
-echo "    rm -rf /home/$USER/.cache/chromium"
+echo "  Per rendere effettive le modifiche a video:"
 echo "    sudo systemctl restart localdisplay.service"
 echo "============================================="
