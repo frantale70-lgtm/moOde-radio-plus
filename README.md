@@ -238,7 +238,7 @@ bash reverse_install.sh
 2. **Isolamento Stagno**: I file vitali (server, config, service e snippet JS) sono sigillati in questa cartella. L'`install.sh` di backup è stato hardcoded per pescare i file esclusivamente da questo ambiente locale isolato. 
 3. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e re-innesca in automatico l'installazione blindata della V7.11.
 
-> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su `header.php`) che dovesse rompere il display, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
+> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su header.php) che dovesse mandare in errore il display o generare altri errori, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
 
 ---
 
@@ -470,4 +470,4 @@ bash reverse_install.sh
 2. **Watertight Isolation**: The vital files (server, config, service, and JS snippet) are sealed within this folder. The backup `install.sh` has been hardcoded to fetch files exclusively from this isolated local environment.
 3. **Rollback Script**: The `reverse_install.sh` file uninstalls the current version and automatically triggers the armored installation of V7.11.
 
-> This way, any future experiment or experimental injection (e.g., on `header.php`) that might break the display can be neutralized and reverted to a safe baseline in just a few seconds.
+> In this way, any future experiment or experimental injection (e.g. on header.php) that might cause display errors or trigger other issues can be neutralized and rolled back to a safe baseline in a matter of seconds.
