@@ -61,17 +61,17 @@ Il punteggio si basa su:
 
 #### 5. Dual Deadline + Early Stop
 
-- **Fast deadline (1.5s)** — se almeno un provider ha risposto entro 1.5s, il sistema usa il miglior risultato disponibile senza aspettare i ritardatari.
-- **Total deadline (2.5s)** — tempo limite assoluto di attesa.
-- **Early stop** — se il punteggio aggregato supera la soglia di 5.0, la ricerca si ferma immediatamente senza aspettare i provider più lenti.
+- **Fast deadline (1.5s)** — se almeno un provider ha risposto entro 1.5s, il sistema usa il miglior risultato disponibile senza aspettare gli altri
+- **Total deadline (2.5s)** — limite massimo assoluto
+- **Early stop** — se il punteggio aggregato supera 5.0, la ricerca si ferma immediatamente senza aspettare i provider lenti
 
 #### 6. Selezione della Miglior Risoluzione
 
-A parità di album trovato su più provider, viene scelta la copertina con la risoluzione più alta tramite 3 passaggi progressivi: Analisi Regex → HTTP HEAD (Content-Length) → PIL streaming parziale (leggendo solo l'header dell'immagine).
+Tra le cover dello stesso album trovate da provider diversi, viene scelta quella con la risoluzione più alta tramite 3 pass progressivi: analisi URL → HTTP HEAD → streaming PIL.
 
 #### 7. Cover di Segmento
 
-Durante lo streaming radio, le emittenti trasmettono spesso metadata di servizio (es. `ADBREAK_END` o `Commercial` per la pubblicità). Il sistema nativo di moOde tenta di cercare questi testi come se fossero brani musicali, finendo per mostrare copertine casuali, decontestualizzate o completamente errate (come il falso positivo nell'esempio a sinistra).
+Durante lo streaming radiofonico, le emittenti trasmettono spesso metadati di servizio (es. `ADBREAK_END` o `Commercial` per la pubblicità). Il sistema nativo di moOde tenta di cercare questi testi come se fossero brani musicali, finendo per visualizzare copertine casuali, decontestualizzate o completamente errate (come nell'esempio del falso positivo a sinistra).
 
 Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca errata e mostra invece una cover dedicata e coerente (a destra):
 
@@ -222,6 +222,23 @@ Un ringraziamento speciale alla gatta **Calzina**, per la costante compagnia (e 
 ### Licenza
 
 MIT License
+
+## SOS Install Panic
+In caso di problemi con una nuova versione dell'installazione o un aggiornamento che rompe il sistema, è disponibile uno script di emergenza chiamato `reverse_install.sh`.
+Questo script (versione V7.11 sicura) esegue una disinstallazione completa della versione corrente e ripristina automaticamente l'ultimo ecosistema stabile testato (server, script e configurazioni) presente nella cartella `obsolete/v7.11_lib_min_injection/`.
+
+Per usarlo, esegui semplicemente:
+```bash
+bash reverse_install.sh
+```
+
+## Dietro le quinte: Architettura Isolamento V7.11
+
+1. **L'ambiente isolato (`obsolete/`)**: La capsula di salvataggio `v7.11_lib_min_injection` incapsula la versione più robusta testata per moOde.
+2. **Isolamento Stagno**: I file vitali (server, config, service e snippet JS) sono sigillati in questa cartella. L'`install.sh` di backup è stato hardcoded per pescare i file esclusivamente da questo ambiente locale isolato. 
+3. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e re-innesca in automatico l'installazione blindata della V7.11.
+
+> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su `header.php`) che dovesse rompere il display, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
 
 ---
 
@@ -438,20 +455,19 @@ Special thanks to **Calzina** the cat, for her constant company (and keyboard-wa
 
 MIT License
 
-
 ## SOS Install Panic
-In caso di problemi con una nuova versione dell'installazione o un aggiornamento che rompe il sistema, è disponibile uno script di emergenza chiamato `reverse_install.sh`.
-Questo script (versione V7.11 sicura) esegue una disinstallazione completa della versione corrente e ripristina automaticamente l'ultimo ecosistema stabile testato (server, script e configurazioni) presente nella cartella `obsolete/v7.11_lib_min_injection/`.
+In case of problems with a new installation version or an update that breaks the system, an emergency script called `reverse_install.sh` is available.
+This script (safe V7.11 version) performs a complete uninstallation of the current version and automatically restores the last tested stable ecosystem (server, scripts, and configurations) located in the `obsolete/v7.11_lib_min_injection/` folder.
 
-Per usarlo, esegui semplicemente:
+To use it, simply run:
 ```bash
 bash reverse_install.sh
 ```
 
-## Dietro le quinte: Architettura Isolamento V7.11
+## Behind the scenes: V7.11 Isolation Architecture
 
-1. **L'ambiente isolato (`obsolete/`)**: La capsula di salvataggio `v7.11_lib_min_injection` incapsula la versione più robusta testata per moOde.
-2. **Isolamento Stagno**: I file vitali (server, config, service e snippet JS) sono sigillati in questa cartella. L'`install.sh` di backup è stato hardcoded per pescare i file esclusivamente da questo ambiente locale isolato. 
-3. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e re-innesca in automatico l'installazione blindata della V7.11.
+1. **The isolated environment (`obsolete/`)**: The `v7.11_lib_min_injection` rescue capsule encapsulates the most robust version tested for moOde.
+2. **Watertight Isolation**: The vital files (server, config, service, and JS snippet) are sealed within this folder. The backup `install.sh` has been hardcoded to fetch files exclusively from this isolated local environment.
+3. **Rollback Script**: The `reverse_install.sh` file uninstalls the current version and automatically triggers the armored installation of V7.11.
 
-> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su `header.php`) che dovesse rompere il display, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
+> This way, any future experiment or experimental injection (e.g., on `header.php`) that might break the display can be neutralized and reverted to a safe baseline in just a few seconds.
