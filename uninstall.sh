@@ -8,7 +8,7 @@
 set -e
 
 INSTALL_DIR="/opt/moOde_Radio_Cover"
-SNIPPET_FILE="moode_sse_snippet_v7.11.js"
+SNIPPET_FILE="moode_sse_snippet.js"
 JS_DIR="/var/www/js"
 HEADER_PHP="/var/www/header.php"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"

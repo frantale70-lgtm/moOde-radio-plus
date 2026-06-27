@@ -104,7 +104,7 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
 
 #### 10. Snippet JS V7.11 — Difesa attiva lato frontend
 
-Lo snippet JS `moode_sse_snippet_v7.11.js` viene copiato in `/var/www/js/` e caricato tramite un tag `<script>` iniettato in `header.php`. Questo approccio è **chirurgico e non invasivo**: non tocca nessun file minificato di sistema come `lib.min.js`, sopravvive agli aggiornamenti di moOde e si rimuove con un singolo comando.
+Lo snippet JS `moode_sse_snippet.js` viene copiato in `/var/www/js/` e caricato tramite un tag `<script>` iniettato in `header.php`. Questo approccio è **chirurgico e non invasivo**: non tocca nessun file minificato di sistema come `lib.min.js`, sopravvive agli aggiornamenti di moOde e si rimuove con un singolo comando.
 
 A runtime, lo snippet protegge la cover SSE da tre direzioni simultanee:
 
@@ -204,8 +204,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 644 /var/www/js/moode_sse_snippet_v7.11.js
-sudo chown root:root /var/www/js/moode_sse_snippet_v7.11.js
+sudo chmod 644 /var/www/js/moode_sse_snippet.js
+sudo chown root:root /var/www/js/moode_sse_snippet.js
 ```
 
 ### Autori e Ringraziamenti
@@ -336,7 +336,7 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
 
 #### 10. JS Snippet V7.11 — Active Frontend Defence
 
-The JS snippet `moode_sse_snippet_v7.11.js` is copied to `/var/www/js/` and loaded via a `<script>` tag injected into `header.php`. This approach is **surgical and non-invasive**: it does not touch any minified system file like `lib.min.js`, survives moOde updates, and is removed with a single command.
+The JS snippet `moode_sse_snippet.js` is copied to `/var/www/js/` and loaded via a `<script>` tag injected into `header.php`. This approach is **surgical and non-invasive**: it does not touch any minified system file like `lib.min.js`, survives moOde updates, and is removed with a single command.
 
 At runtime, the snippet protects the SSE cover from three simultaneous directions:
 
@@ -436,8 +436,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 644 /var/www/js/moode_sse_snippet_v7.11.js
-sudo chown root:root /var/www/js/moode_sse_snippet_v7.11.js
+sudo chmod 644 /var/www/js/moode_sse_snippet.js
+sudo chown root:root /var/www/js/moode_sse_snippet.js
 ```
 
 ### Authors and Acknowledgements
@@ -457,7 +457,7 @@ MIT License
 
 ## SOS Install Panic
 In case of problems with a new installation version or an update that breaks the system, an emergency script called `reverse_install.sh` is available.
-This script (safe V7.11 version) performs a complete uninstallation of the current version and automatically restores the last tested stable ecosystem (server, scripts, and configurations) located in the `obsolete/v7.11_lib_min_injection/` folder.
+This script (safe V7.11 version) performs a complete uninstallation of the current version and automatically restores the last tested stable ecosystem (server, scripts, and configurations) located in the `obsolete/v7.11_lib_min_injection/`.
 
 To use it, simply run:
 ```bash
