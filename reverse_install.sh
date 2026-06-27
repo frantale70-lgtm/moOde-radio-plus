@@ -11,7 +11,7 @@ echo "   REVERSE INSTALL - FALLBACK DI EMERGENZA"
 echo "============================================="
 echo "Questo script disinstallerà la versione attuale"
 echo "e ripristinerà l'ultima versione stabile:"
-echo "-> V7.11 (Iniezione diretta in lib.min.js)"
+echo "-> Arch B (snippet standalone + header.php)"
 echo "============================================="
 echo ""
 read -p "Sei sicuro di voler effettuare il rollback? [s/N] " confirm
@@ -26,7 +26,7 @@ bash <(curl -fsSL "$REPO_RAW/uninstall.sh") || true
 
 echo ""
 echo "[FASE 2] Installazione versione di emergenza..."
-bash <(curl -fsSL "$REPO_RAW/obsolete/v7.11_lib_min_injection/install.sh")
+bash <(curl -fsSL "$REPO_RAW/install.sh")
 if [ $? -ne 0 ]; then
     echo "ERRORE: install.sh di emergenza fallito!"
     exit 1
