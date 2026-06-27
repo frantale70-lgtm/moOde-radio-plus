@@ -10,8 +10,7 @@ set -e
 REPO_RAW="https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main"
 INSTALL_DIR="/opt/moOde_Radio_Cover"
 SNIPPET_FILE="moode_sse_snippet_v7.11.js"
-JS_DIR="/var/www/js"
-HEADER_PHP="/var/www/header.php"
+LIB_MIN="/var/www/js/lib.min.js"
 SERVICE_FILE="/etc/systemd/system/moode-sse.service"
 LOG_FILE="/var/log/radio-cover.log"
 LOGOS_DIR="/var/local/www/imagesw/radio-logos"
@@ -65,51 +64,38 @@ else
     echo "  Config scaricato. Ricordati di inserire le API keys al termine."
 fi
 
-# — SNIPPET JS STANDALONE ———————————————————————
-echo "[5/7] Installazione snippet JS e iniezione in header.php..."
+# — INIEZIONE SNIPPET IN lib.min.js ————————————
+echo "[5/7] Iniezione snippet in lib.min.js..."
 
-# Download snippet in /var/www/js/
-curl -fsSL "$REPO_RAW/plugin/$SNIPPET_FILE" \
-    | sudo tee "$JS_DIR/$SNIPPET_FILE" > /dev/null
-sudo chown root:www-data "$JS_DIR/$SNIPPET_FILE"
-sudo chmod 644 "$JS_DIR/$SNIPPET_FILE"
-echo "  Snippet scaricato in $JS_DIR/$SNIPPET_FILE"
-
-# Backup header.php — originale solo la prima volta + timestampato
-if [ ! -f "${HEADER_PHP}.bak.original" ]; then
-    sudo cp "$HEADER_PHP" "${HEADER_PHP}.bak.original"
-    echo "  Backup originale header.php creato."
+# Verifica esistenza lib.min.js
+if [ ! -f "$LIB_MIN" ]; then
+    echo "  ERRORE: $LIB_MIN non trovato. Installazione annullata."
+    exit 1
 fi
-sudo cp "$HEADER_PHP" "${HEADER_PHP}.bak.$(date +%Y%m%d_%H%M%S)"
 
-# Iniezione tag <script> via Python — guard idempotente
-sudo python3 - << PYEOF
-import re, time, sys
+# Guard anti-doppia-iniezione
+if grep -q "moode-sse-patch V7.11" "$LIB_MIN"; then
+    echo "  Snippet V7.11 già presente in lib.min.js — skip."
+else
+    # Backup originale (solo la prima volta)
+    if [ ! -f "${LIB_MIN}.bak.original" ]; then
+        sudo cp "$LIB_MIN" "${LIB_MIN}.bak.original"
+        echo "  Backup originale lib.min.js creato."
+    fi
+    # Backup timestampato
+    sudo cp "$LIB_MIN" "${LIB_MIN}.bak.$(date +%Y%m%d_%H%M%S)"
 
-target = '$HEADER_PHP'
-snippet = '$SNIPPET_FILE'
-tag = '<script src="js/{}?v={}" defer></script>'.format(snippet, int(time.time()))
+    # Download snippet in dir temporanea
+    SNIPPET_TMP=$(mktemp)
+    curl -fsSL "$REPO_RAW/plugin/$SNIPPET_FILE" -o "$SNIPPET_TMP"
 
-with open(target, 'r') as f:
-    content = f.read()
+    # Append in coda a lib.min.js
+    echo "" | sudo tee -a "$LIB_MIN" > /dev/null
+    sudo cat "$SNIPPET_TMP" | sudo tee -a "$LIB_MIN" > /dev/null
+    rm -f "$SNIPPET_TMP"
 
-if snippet in content:
-    content = re.sub(
-        r'<script src="js/' + re.escape(snippet) + r'\?v=\d+" defer></script>',
-        tag,
-        content
-    )
-    print("  Tag già presente — timestamp aggiornato.")
-else:
-    if '</head>' not in content:
-        print("ERRORE: tag </head> non trovato in header.php")
-        sys.exit(1)
-    content = content.replace('</head>', '    ' + tag + '\n</head>')
-    print("  Tag <script> iniettato in header.php.")
-
-with open(target, 'w') as f:
-    f.write(content)
-PYEOF
+    echo "  Snippet V7.11 iniettato in $LIB_MIN."
+fi
 
 # — NGINX PROXY SSE ————————————————————————————
 echo "[6/7] Configurazione Nginx proxy SSE..."
