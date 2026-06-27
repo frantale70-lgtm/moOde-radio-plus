@@ -104,7 +104,7 @@ Ogni 5 minuti il daemon verifica autonomamente che tutti i provider siano raggiu
 
 #### 10. Snippet JS V7.11 — Difesa attiva lato frontend
 
-Lo snippet JS `moode_radio_plus_snippet.js` viene copiato in `/var/www/js/` e caricato tramite un tag `<script>` iniettato in `header.php`. Questo approccio è **chirurgico e non invasivo**: non tocca nessun file minificato di sistema come `lib.min.js`, sopravvive agli aggiornamenti di moOde e si rimuove con un singolo comando.
+Lo snippet JS `moode_sse_snippet_v7.11.js` viene copiato in `/var/www/js/` e caricato tramite un tag `<script>` iniettato in `header.php`. Questo approccio è **chirurgico e non invasivo**: non tocca nessun file minificato di sistema come `lib.min.js`, sopravvive agli aggiornamenti di moOde e si rimuove con un singolo comando.
 
 A runtime, lo snippet protegge la cover SSE da tre direzioni simultanee:
 
@@ -204,8 +204,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 644 /var/www/js/moode_radio_plus_snippet.js
-sudo chown root:root /var/www/js/moode_radio_plus_snippet.js
+sudo chmod 644 /var/www/js/moode_sse_snippet_v7.11.js
+sudo chown root:root /var/www/js/moode_sse_snippet_v7.11.js
 ```
 
 ### Autori e Ringraziamenti
@@ -229,7 +229,7 @@ Questo script (versione V7.11 sicura) esegue una disinstallazione completa della
 
 Per usarlo, esegui semplicemente:
 ```bash
-bash reverse_install.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/reverse_install.sh)
 ```
 
 ## Dietro le quinte: Architettura Isolamento V7.11
@@ -336,7 +336,7 @@ Every 5 minutes the daemon autonomously verifies that all providers are reachabl
 
 #### 10. JS Snippet V7.11 — Active Frontend Defence
 
-The JS snippet `moode_radio_plus_snippet.js` is copied to `/var/www/js/` and loaded via a `<script>` tag injected into `header.php`. This approach is **surgical and non-invasive**: it does not touch any minified system file like `lib.min.js`, survives moOde updates, and is removed with a single command.
+The JS snippet `moode_sse_snippet_v7.11.js` is copied to `/var/www/js/` and loaded via a `<script>` tag injected into `header.php`. This approach is **surgical and non-invasive**: it does not touch any minified system file like `lib.min.js`, survives moOde updates, and is removed with a single command.
 
 At runtime, the snippet protects the SSE cover from three simultaneous directions:
 
@@ -436,8 +436,8 @@ sudo chmod 664 /opt/moOde_Radio_Cover/moode_sse_server.config
 ```bash
 sudo chown $USER:$USER /opt/moOde_Radio_Cover/moode_sse_server.py
 sudo chmod 775 /opt/moOde_Radio_Cover/moode_sse_server.py
-sudo chmod 644 /var/www/js/moode_radio_plus_snippet.js
-sudo chown root:root /var/www/js/moode_radio_plus_snippet.js
+sudo chmod 644 /var/www/js/moode_sse_snippet_v7.11.js
+sudo chown root:root /var/www/js/moode_sse_snippet_v7.11.js
 ```
 
 ### Authors and Acknowledgements
@@ -461,7 +461,7 @@ This script (safe V7.11 version) performs a complete uninstallation of the curre
 
 To use it, simply run:
 ```bash
-bash reverse_install.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/reverse_install.sh)
 ```
 
 ## Behind the scenes: V7.11 Isolation Architecture
