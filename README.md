@@ -79,7 +79,7 @@ Quando il *noise gate* di MR+ identifica un segmento noto, blocca questa ricerca
 | :---: | :---: |
 | ![moOde Native False Positive](docs/Immagine%202026-06-12%20214551.jpg) | ![moOde Segment Cover](docs/screenshot-segment.png) |
 
-| Segmento | Keywords riconosciute |
+| Segment | Keywords riconosciute |
 |---|---|
 | 🌤 Meteo | meteo, weather, wetter, météo, previsioni |
 | 🚗 Traffico | traffico, traffic, verkehr, trafic, viabilità |
@@ -134,7 +134,7 @@ I colori sono stati scelti per essere accessibili anche a utenti daltonici (no c
 | :---: | :---: |
 | ![Browser con badge MR+](docs/Immagine%202026-06-12%20194332.jpg) | ![Kiosk con badge MR+](docs/IMG20260612195811.jpg) |
 
-### Prerequisito
+### Prerequisite
 
 In moOde: **Preferences → Cover Art → Radio track covers = No**
 
@@ -225,20 +225,21 @@ MIT License
 
 ## SOS Install Panic
 In caso di problemi con una nuova versione dell'installazione o un aggiornamento che rompe il sistema, è disponibile uno script di emergenza chiamato `reverse_install.sh`.
-Questo script (versione V7.11 sicura) esegue una disinstallazione completa della versione corrente e ripristina automaticamente l'ultimo ecosistema stabile testato (server, script e configurazioni) presente nella cartella `obsolete/v7.11_lib_min_injection/`.
+Questo script esegue una disinstallazione completa della versione corrente e reinstalla automaticamente l'ultima versione stabile di Arch B (snippet standalone + iniezione in `header.php`).
 
 Per usarlo, esegui semplicemente:
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/reverse_install.sh)
 ```
 
-## Dietro le quinte: Architettura Isolamento V7.11
+## Dietro le quinte: Architettura Arch B
 
-1. **L'ambiente isolato (`obsolete/`)**: La capsula di salvataggio `v7.11_lib_min_injection` incapsula la versione più robusta testata per moOde.
-2. **Isolamento Stagno**: I file vitali (server, config, service e snippet JS) sono sigillati in questa cartella. L'`install.sh` di backup è stato hardcoded per pescare i file esclusivamente da questo ambiente locale isolato. 
-3. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e re-innesca in automatico l'installazione blindata della V7.11.
+1. **Snippet standalone**: Lo snippet JS `moode_sse_snippet.js` è un file autonomo installato in `/var/www/js/`. Non viene iniettato in nessun file minificato di sistema — `lib.min.js` non viene mai toccato.
+2. **Iniezione chirurgica in `header.php`**: Un singolo tag `<script defer>` viene aggiunto prima di `</head>` tramite Python. La modifica è minimale, leggibile e reversibile con un singolo comando.
+3. **Migrazione automatica da Arch A**: Se durante l'installazione viene rilevato uno snippet precedente iniettato in `lib.min.js`, viene rimosso automaticamente prima di procedere.
+4. **Rollback Script**: Il file `reverse_install.sh` disinstalla la versione corrente e reinstalla automaticamente Arch B dalla versione stabile presente nel repository.
 
-> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su header.php) che dovesse mandare in errore il display o generare altri errori, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
+> In questo modo, qualsiasi esperimento o iniezione sperimentale futura (es. su `header.php`) che dovesse mandare in errore il display o generare altri errori, può essere neutralizzata e riportata a una baseline sicura in pochissimi secondi.
 
 ---
 
@@ -457,17 +458,18 @@ MIT License
 
 ## SOS Install Panic
 In case of problems with a new installation version or an update that breaks the system, an emergency script called `reverse_install.sh` is available.
-This script (safe V7.11 version) performs a complete uninstallation of the current version and automatically restores the last tested stable ecosystem (server, scripts, and configurations) located in the `obsolete/v7.11_lib_min_injection/`.
+This script performs a complete uninstallation of the current version and automatically reinstalls the latest stable Arch B release (standalone snippet + `header.php` injection).
 
 To use it, simply run:
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/frantale70-lgtm/moOde-radio-plus/main/reverse_install.sh)
 ```
 
-## Behind the scenes: V7.11 Isolation Architecture
+## Behind the scenes: Arch B Architecture
 
-1. **The isolated environment (`obsolete/`)**: The `v7.11_lib_min_injection` rescue capsule encapsulates the most robust version tested for moOde.
-2. **Watertight Isolation**: The vital files (server, config, service, and JS snippet) are sealed within this folder. The backup `install.sh` has been hardcoded to fetch files exclusively from this isolated local environment.
-3. **Rollback Script**: The `reverse_install.sh` file uninstalls the current version and automatically triggers the armored installation of V7.11.
+1. **Standalone snippet**: The JS snippet `moode_sse_snippet.js` is an independent file installed in `/var/www/js/`. It is not injected into any minified system file — `lib.min.js` is never touched.
+2. **Surgical injection into `header.php`**: A single `<script defer>` tag is added before `</head>` via Python. The change is minimal, readable, and reversible with a single command.
+3. **Automatic migration from Arch A**: If a previous snippet injected into `lib.min.js` is detected during installation, it is automatically removed before proceeding.
+4. **Rollback Script**: The `reverse_install.sh` file uninstalls the current version and automatically reinstalls Arch B from the stable version in the repository.
 
-> In this way, any future experiment or experimental injection (e.g. on header.php) that might cause display errors or trigger other issues can be neutralized and rolled back to a safe baseline in a matter of seconds.
+> In this way, any future experiment or experimental injection (e.g. on `header.php`) that might cause display errors or trigger other issues can be neutralized and rolled back to a safe baseline in a matter of seconds.
