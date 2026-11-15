@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgW" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <marker id="arrW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10B981"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="430" rx="16" fill="url(#bgW)" stroke="#1E293B" stroke-width="2"/>
+  <text x="600" y="38" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20" font-weight="800">FLUSSO DECISIONALE &amp; CICLO DI ESECUZIONE DETERMINISTICO (AM-SDK v3.0)</text>
+  <rect x="40" y="155" width="185" height="110" rx="10" fill="#1E293B" stroke="#38BDF8" stroke-width="1.5"/>
+  <text x="132" y="185" text-anchor="middle" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">1. INPUT UTENTE</text>
+  <text x="132" y="210" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Prompt in Chat / IDE</text>
+  <text x="132" y="232" text-anchor="middle" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Intercettato da</text>
+  <text x="132" y="248" text-anchor="middle" fill="#FDE68A" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5" font-weight="600">guardrail_pre_invoc.py</text>
+  <line x1="225" y1="210" x2="270" y2="210" stroke="#38BDF8" stroke-width="2.2" marker-end="url(#arrW)"/>
+  <rect x="275" y="130" width="225" height="160" rx="10" fill="#171625" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="387" y="158" text-anchor="middle" fill="#F59E0B" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">2. SMISTAMENTO</text>
+  <text x="387" y="182" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Analisi Semantica &amp; Contesto</text>
+  <text x="292" y="208" fill="#CBD5E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">• Chat generica → Groq LPU (0 tok)</text>
+  <text x="292" y="230" fill="#6EE7B7" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">• Studio / REA / &gt;250 righe → GLOBAL</text>
+  <text x="292" y="252" fill="#7DD3FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">• Funzione / Bug isolato → SURGICAL</text>
+  <text x="292" y="274" fill="#C084FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">• "usa il tuo" → Nativo sbloccato</text>
+  <path d="M 500 175 L 545 175 L 545 115 L 585 115" fill="none" stroke="#10B981" stroke-width="2.2" marker-end="url(#arrG)"/>
+  <rect x="590" y="65" width="310" height="115" rx="10" fill="#091D1B" stroke="#10B981" stroke-width="1.5"/>
+  <text x="610" y="90" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">3A. TIER GLOBALE (1.000.000 TOKEN)</text>
+  <text x="610" y="114" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Nemotron 3.5 Lightning (~20s)</text>
+  <text x="610" y="136" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Nemotron 3 Ultra 550B (Timeout 120s)</text>
+  <text x="610" y="158" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Primo approccio, librerie esterne, REA, multi-file</text>
+  <path d="M 500 245 L 545 245 L 545 305 L 585 305" fill="none" stroke="#38BDF8" stroke-width="2.2" marker-end="url(#arrW)"/>
+  <rect x="590" y="250" width="310" height="115" rx="10" fill="#091526" stroke="#38BDF8" stroke-width="1.5"/>
+  <text x="610" y="275" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">3B. TIER CHIRURGICO (~3,4 SECONDI)</text>
+  <text x="610" y="299" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Mistral Codestral Latest (256k)</text>
+  <text x="610" y="321" fill="#BAE6FD" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="600">Agente Specialistico via Aider CLI</text>
+  <text x="610" y="343" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Si piega una funzione o un bug mirato e corregge</text>
+  <path d="M 900 122 L 935 122 L 935 195 L 965 195" fill="none" stroke="#10B981" stroke-width="2.2" marker-end="url(#arrG)"/>
+  <path d="M 900 307 L 935 307 L 935 225 L 965 225" fill="none" stroke="#38BDF8" stroke-width="2.2" marker-end="url(#arrW)"/>
+  <rect x="970" y="125" width="190" height="170" rx="10" fill="#131C31" stroke="#10B981" stroke-width="1.8"/>
+  <text x="1065" y="153" text-anchor="middle" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">4. VERIFICA &amp; QA</text>
+  <text x="1065" y="177" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Smart Verify</text>
+  <text x="1065" y="198" text-anchor="middle" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">.py / .ino / .cpp / .json</text>
+  <line x1="990" y1="214" x2="1140" y2="114" stroke="#334155" opacity="0"/>
+  <text x="1065" y="236" text-anchor="middle" fill="#6EE7B7" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">OK → Commit / Fine</text>
+  <text x="1065" y="258" text-anchor="middle" fill="#FDA4AF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700">KO → Rollback .agy_backup</text>
+  <text x="1065" y="278" text-anchor="middle" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11">&amp; Failover al nodo successivo</text>
+</svg>

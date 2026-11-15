@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070B14"/>
+      <stop offset="50%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#091E26"/>
+    </linearGradient>
+    <linearGradient id="cyanEm" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95"/>
+    </linearGradient>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="320" rx="18" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="2"/>
+  <rect x="40" y="0" width="1120" height="4" fill="url(#cyanEm)"/>
+  <rect x="55" y="34" width="350" height="30" rx="15" fill="#0D283A" stroke="#38BDF8" stroke-width="1.2"/>
+  <circle cx="74" cy="49" r="5" fill="#10B981" filter="url(#glow)"/>
+  <text x="90" y="54" fill="#E0F2FE" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700" letter-spacing="1.2">AM-SDK v3.0 • IMPERATIVE DUAL-TIER MESH</text>
+  <rect x="885" y="34" width="260" height="30" rx="15" fill="#27171A" stroke="#F43F5E" stroke-width="1.2"/>
+  <text x="1015" y="54" text-anchor="middle" fill="#FDA4AF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="0.8">PRIVATE REPO • CITATION REQUIRED</text>
+  <text x="55" y="114" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="44" font-weight="800">AM-SDK v3.0 Autopilot</text>
+  <text x="55" y="152" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="19" font-weight="500">Centro di Smistamento Imperativo, Ragionamento Globale 1M Token &amp; Chirurgia del Codice a 0 Token Host</text>
+  <g transform="translate(55, 184)">
+    <rect x="0" y="0" width="258" height="102" rx="12" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5"/>
+    <text x="20" y="30" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">TIER GLOBALE (NEMOTRON)</text>
+    <text x="20" y="64" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28" font-weight="800">1.000.000 tok</text>
+    <text x="20" y="86" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Lightning (~20s) + Ultra 550B (120s)</text>
+    <rect x="277" y="0" width="258" height="102" rx="12" fill="url(#cardGrad)" stroke="#38BDF8" stroke-width="1.5"/>
+    <text x="297" y="30" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">TIER CHIRURGICO (CODESTRAL)</text>
+    <text x="297" y="64" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28" font-weight="800">~3,4 secondi</text>
+    <text x="297" y="86" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Specialista 256k per funzioni e bug mirati</text>
+    <rect x="554" y="0" width="258" height="102" rx="12" fill="url(#cardGrad)" stroke="#F59E0B" stroke-width="1.5"/>
+    <text x="574" y="30" fill="#F59E0B" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">RISPARMIO QUOTA IDE</text>
+    <text x="574" y="64" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28" font-weight="800">95% – 100%</text>
+    <text x="574" y="86" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Validato su Pro • Funziona 100% Free</text>
+    <rect x="831" y="0" width="259" height="102" rx="12" fill="url(#cardGrad)" stroke="#A855F7" stroke-width="1.5"/>
+    <text x="851" y="30" fill="#C084FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">BENCHMARK ANTI-ABBOCCO</text>
+    <text x="851" y="64" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28" font-weight="800">10 / 10 Score</text>
+    <text x="851" y="86" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Riconoscimento trappole REA &amp; Quant</text>
+  </g>
+</svg>

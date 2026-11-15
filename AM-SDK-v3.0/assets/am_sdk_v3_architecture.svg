@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10B981"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="780" rx="16" fill="url(#bgA)" stroke="#1E293B" stroke-width="2"/>
+  <text x="600" y="42" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="0.5">ARCHITETTURA GENERALE AM-SDK v3.0 — CENTRO DI SMISTAMENTO IMPERATIVO</text>
+  <text x="600" y="66" text-anchor="middle" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5">"Altri studiano e preparano le torte (Mesh Esterna 1M + Aider + REA), il Supervisore verifica solo che siano buone"</text>
+  <rect x="40" y="88" width="1120" height="100" rx="12" fill="#131C31" stroke="#38BDF8" stroke-width="1.5"/>
+  <text x="60" y="112" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">LIVELLO 1 • PIATTAFORMA AGENTICA HOST (VALIDATA SU ANTIGRAVITY PRO • PORTABILE SU QUALSIASI IDE AGENTICO)</text>
+  <rect x="60" y="124" width="335" height="50" rx="8" fill="#0F172A" stroke="#334155"/>
+  <text x="78" y="146" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Officina Centrale (agy-test)</text>
+  <text x="78" y="164" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Modello: Gemini 4 Argon (Medium) • NO Orchestrator</text>
+  <rect x="415" y="124" width="385" height="50" rx="8" fill="#0F172A" stroke="#334155"/>
+  <text x="433" y="146" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Workspace Applicativi (ESP32, Sonora, Bot Quant)</text>
+  <text x="433" y="164" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Modello: Gemini 4 Hydrogen (Medium) • Free-Tier Ready</text>
+  <rect x="820" y="124" width="320" height="50" rx="8" fill="#1E1B2E" stroke="#A855F7"/>
+  <text x="838" y="146" fill="#E9D5FF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">Override Esplicito ("usa il tuo")</text>
+  <text x="838" y="164" fill="#C084FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">Sblocca all'istante il modello nativo dell'IDE</text>
+  <line x1="600" y1="188" x2="600" y2="218" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrowCyan)"/>
+  <rect x="40" y="222" width="1120" height="122" rx="12" fill="#171625" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="60" y="246" fill="#F59E0B" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">LIVELLO 2 • GUARDRAIL DETERMINISTICI &amp; INTERCETTAZIONE LIFECYCLE (PLUGIN GLOBALE ~/.gemini/config/plugins/am-sdk-autopilot)</text>
+  <rect x="60" y="258" width="525" height="72" rx="8" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+  <text x="78" y="280" fill="#FDE68A" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">Hook PreInvocation (guardrail_pre_invoc.py)</text>
+  <text x="78" y="299" fill="#CBD5E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">• Domanda generica: risponde via Mesh a 0 token IDE (terminate: true)</text>
+  <text x="78" y="317" fill="#CBD5E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">• Task di progetto (radici italiane): inietta direttiva v3.0 • Ignora invocationNum &gt; 1</text>
+  <rect x="615" y="258" width="525" height="72" rx="8" fill="#0F172A" stroke="#F43F5E" stroke-width="1.2"/>
+  <text x="633" y="280" fill="#FDA4AF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">Hook PreToolUse (guardrail_pre_tool.py)</text>
+  <text x="633" y="299" fill="#CBD5E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">• BLOCCA write_file / edit_file / read_file sui sorgenti (.ino, .cpp, .py, .js, .ts)</text>
+  <text x="633" y="317" fill="#CBD5E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">• Obbliga delega CLI ad am_harness.py • Consente lettura .md/.json per QA finale</text>
+  <line x1="600" y1="344" x2="600" y2="374" stroke="#F59E0B" stroke-width="2.5" marker-end="url(#arrowAmber)"/>
+  <rect x="40" y="378" width="1120" height="240" rx="12" fill="#0D1F22" stroke="#10B981" stroke-width="1.8"/>
+  <text x="60" y="402" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">LIVELLO 3 • MOTORE DETERMINISTICO am_harness.py &amp; BATTERIA MULTI-AI DUAL-TIER (0 COSTO API)</text>
+  <rect x="60" y="416" width="350" height="184" rx="10" fill="#09151B" stroke="#10B981" stroke-width="1.5"/>
+  <rect x="76" y="428" width="190" height="22" rx="6" fill="#064E3B"/>
+  <text x="86" y="443" fill="#6EE7B7" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5" font-weight="700">--mode global • 1M TOKENS</text>
+  <text x="76" y="470" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="15" font-weight="800">Studio Globale, Librerie &amp; REA</text>
+  <text x="76" y="494" fill="#A7F3D0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">1. Nemotron 3.5 Lightning :free</text>
+  <text x="92" y="512" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">1.000.000 ctx • ~20s • Score 10/10 • Timeout 90s</text>
+  <text x="76" y="536" fill="#A7F3D0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">2. Nemotron 3 Ultra 550B MoE :free</text>
+  <text x="92" y="554" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">1.000.000 ctx • Timeout dedicato 120s • Score 10/10</text>
+  <text x="76" y="578" fill="#A7F3D0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">3. Nemotron 3.5 Super VL 120B :free</text>
+  <text x="92" y="593" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">1.000.000 ctx • Vision &amp; Multimodal Fallback</text>
+  <rect x="425" y="416" width="350" height="184" rx="10" fill="#091526" stroke="#38BDF8" stroke-width="1.5"/>
+  <rect x="441" y="428" width="215" height="22" rx="6" fill="#0C4A6E"/>
+  <text x="451" y="443" fill="#7DD3FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5" font-weight="700">--mode surgical • ~3,4 SECONDI</text>
+  <text x="441" y="470" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="15" font-weight="800">Agente Specialistico Chirurgico</text>
+  <text x="441" y="494" fill="#BAE6FD" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">1. Mistral Codestral Latest</text>
+  <text x="457" y="512" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">256.000 ctx • ~3,4s • Patch chirurgica su funzioni/bug</text>
+  <text x="441" y="536" fill="#BAE6FD" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">2. Aider Tactical Engine</text>
+  <text x="457" y="554" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">--edit-format whole (&lt;250 righe) / diff (&gt;=250 righe)</text>
+  <text x="441" y="578" fill="#BAE6FD" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">3. Failover Automatico su Nemotron 1M</text>
+  <text x="457" y="593" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Zero dipendenza da Groq 7k TPM nel coding</text>
+  <rect x="790" y="416" width="350" height="184" rx="10" fill="#1B162A" stroke="#A855F7" stroke-width="1.5"/>
+  <rect x="806" y="428" width="225" height="22" rx="6" fill="#4C1D95"/>
+  <text x="816" y="443" fill="#DDD6FE" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5" font-weight="700">evidence • ask • REA • Audio STT</text>
+  <text x="806" y="470" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="15" font-weight="800">Ispezione 0-Token, Voce &amp; REA</text>
+  <text x="806" y="494" fill="#E9D5FF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">• EvidenceBundle Extractor (0 LLM tok)</text>
+  <text x="822" y="512" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Snippet &lt;=2.500 tok + Redazione automatica API Key</text>
+  <text x="806" y="536" fill="#E9D5FF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">• Groq LPU + Whisper Large v3 Turbo</text>
+  <text x="822" y="554" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">GPT-OSS 20B/120B + Qwen 3.8 27B per ask rapido e STT</text>
+  <text x="806" y="578" fill="#E9D5FF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">• REA (Reverse Engineer Anything)</text>
+  <text x="822" y="593" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Analisi binari, simboli C++, firmware ESP32 &amp; librerie</text>
+  <line x1="600" y1="618" x2="600" y2="648" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <rect x="40" y="652" width="1120" height="104" rx="12" fill="#131C31" stroke="#38BDF8" stroke-width="1.5"/>
+  <text x="60" y="676" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1">LIVELLO 4 • VERIFICA SMART MULTI-LINGUAGGIO, ROLLBACK CHIRURGICO (.agy_backup) &amp; TELEMETRIA</text>
+  <rect x="60" y="688" width="350" height="54" rx="8" fill="#0F172A" stroke="#334155"/>
+  <text x="78" y="710" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13" font-weight="700">run_smart_verification (--verify auto)</text>
+  <text x="78" y="728" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">py_compile (.py) • Bilanciamento '{ }' (.ino/.cpp/.js) • JSON</text>
+  <rect x="425" y="688" width="350" height="54" rx="8" fill="#0F172A" stroke="#334155"/>
+  <text x="443" y="710" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13" font-weight="700">TargetFilesBackup (.agy_backup/)</text>
+  <text x="443" y="728" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Snapshot SHA-256 pre-modifica • MAI git reset --hard</text>
+  <rect x="790" y="688" width="350" height="54" rx="8" fill="#0F172A" stroke="#334155"/>
+  <text x="808" y="710" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13" font-weight="700">Model Radar &amp; Audit (.agy_logs/mesh.jsonl)</text>
+  <text x="808" y="728" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Scansione all'avvio di Windows (am_radar.py) + Log JSONL</text>
+</svg>

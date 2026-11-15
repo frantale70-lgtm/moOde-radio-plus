@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="barGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="barCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <linearGradient id="barPurple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" rx="16" fill="url(#bgB)" stroke="#1E293B" stroke-width="2"/>
+  <text x="600" y="40" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20" font-weight="800">BENCHMARK SPERIMENTALE "ANTI-ABBOCCO" (TRAP RECOGNITION + CODING)</text>
+  <text x="600" y="64" text-anchor="middle" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13">Test 1: ESP32-S3 C++ I2S Slave + Trappola REA (private: setSampleRate) + Diff Aider  |  Test 2: Quant Bot Look-Ahead Bias (.shift(-1)) + Leva 20x</text>
+  <rect x="45" y="86" width="1110" height="38" rx="8" fill="#1E293B"/>
+  <text x="65" y="110" fill="#E2E8F0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">MODELLO DELLA BATTERIA</text>
+  <text x="395" y="110" fill="#E2E8F0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">CONTESTO</text>
+  <text x="515" y="110" fill="#E2E8F0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">PUNTEGGIO TRAPPOLE &amp; DIFF</text>
+  <text x="860" y="110" fill="#E2E8F0" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="700">LATENZA &amp; RUOLO</text>
+  <rect x="45" y="134" width="1110" height="60" rx="8" fill="#0F172A" stroke="#10B981" stroke-width="1.2"/>
+  <text x="65" y="160" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">NVIDIA Nemotron 3.5 Lightning :free</text>
+  <text x="65" y="180" fill="#6EE7B7" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">30B/3B MoE • OpenRouter Free</text>
+  <text x="395" y="169" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="800">1.000.000</text>
+  <rect x="515" y="150" width="280" height="24" rx="6" fill="url(#barGreen)"/>
+  <text x="655" y="167" text-anchor="middle" fill="#FFFFFF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="800">10 / 10 (6/6 C++ REA + 4/4 Quant)</text>
+  <text x="860" y="160" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">20,7s (Timeout 90s)</text>
+  <text x="860" y="180" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Primario Studio Globale &amp; Primo Contatto</text>
+  <rect x="45" y="204" width="1110" height="60" rx="8" fill="#0F172A" stroke="#10B981" stroke-width="1.2"/>
+  <text x="65" y="230" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">NVIDIA Nemotron 3 Ultra 550B MoE :free</text>
+  <text x="65" y="250" fill="#6EE7B7" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">550B/55B Hybrid Mamba-Transformer • Deep CoT</text>
+  <text x="395" y="239" fill="#10B981" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="800">1.000.000</text>
+  <rect x="515" y="220" width="280" height="24" rx="6" fill="url(#barGreen)"/>
+  <text x="655" y="237" text-anchor="middle" fill="#FFFFFF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="800">10 / 10 (Analisi Profonda REA &amp; Math)</text>
+  <text x="860" y="230" fill="#FDE68A" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">63,5s (Timeout Dedicato 120s)</text>
+  <text x="860" y="250" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Ragionamento Pesante, Letteratura &amp; REA</text>
+  <rect x="45" y="274" width="1110" height="60" rx="8" fill="#0F172A" stroke="#38BDF8" stroke-width="1.2"/>
+  <text x="65" y="300" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">Mistral Codestral Latest</text>
+  <text x="65" y="320" fill="#7DD3FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Mistral AI Direct API • Specialist Coder</text>
+  <text x="395" y="309" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="800">256.000</text>
+  <rect x="515" y="290" width="252" height="24" rx="6" fill="url(#barCyan)"/>
+  <text x="641" y="307" text-anchor="middle" fill="#FFFFFF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="800">9 / 10 (Patch SEARCH/REPLACE Esatta)</text>
+  <text x="860" y="300" fill="#38BDF8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="800">3,4s (Fulmineo)</text>
+  <text x="860" y="320" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Agente Specialistico Chirurgico (--mode surgical)</text>
+  <rect x="45" y="344" width="1110" height="56" rx="8" fill="#0F172A" stroke="#A855F7" stroke-width="1.2"/>
+  <text x="65" y="368" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="700">NVIDIA Nemotron 3.5 Super VL 120B :free</text>
+  <text x="65" y="388" fill="#DDD6FE" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">120B/12B Multimodal MoE</text>
+  <text x="395" y="377" fill="#C084FC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="14" font-weight="800">1.000.000</text>
+  <rect x="515" y="358" width="252" height="24" rx="6" fill="url(#barPurple)"/>
+  <text x="641" y="375" text-anchor="middle" fill="#FFFFFF" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12.5" font-weight="800">9 / 10 (Multimodal &amp; High Context)</text>
+  <text x="860" y="368" fill="#F8FAFC" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="13.5" font-weight="700">47,7s (Timeout 120s)</text>
+  <text x="860" y="388" fill="#94A3B8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="11.5">Failover Vision &amp; Contesto 1M</text>
+</svg>
